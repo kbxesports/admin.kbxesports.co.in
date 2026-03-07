@@ -1,0 +1,2049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KBX Esports Admin Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--neon:#00f5ff;--neon2:#ff006e;--gold:#ffd700;--dark:#060810;--dark2:#0a0d1a;--card:#0d1020;--card2:#111525;--border:#1a2040;--border2:#00f5ff22;--text:#e8eaff;--muted:#6b7299;--green:#00ff88;--orange:#ff6b00;--sidebar:220px}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--dark);color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;overflow-x:hidden}
+body::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:60px 60px;opacity:.08;pointer-events:none;z-index:0}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:var(--dark2)}::-webkit-scrollbar-thumb{background:var(--neon);border-radius:3px}
+
+/* ── LOGO ── */
+.kbx-logo{display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:2px;font-size:18px;color:var(--text)}
+.kbx-logo .logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--neon),#0066ff);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#000;font-family:'Orbitron',sans-serif;flex-shrink:0;box-shadow:0 0 12px rgba(0,245,255,.4)}
+.kbx-logo .logo-text span{color:var(--neon)}
+
+/* ── LAYOUT ── */
+#loginPage{min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;z-index:1}
+#app{display:none;min-height:100vh}
+.sidebar{position:fixed;left:0;top:0;width:var(--sidebar);height:100vh;background:rgba(6,8,16,.98);border-right:1px solid var(--border);z-index:100;overflow-y:auto;transition:.3s}
+.sidebar-brand{padding:16px 18px;border-bottom:1px solid var(--border)}
+.sidebar-brand small{display:block;font-size:10px;color:var(--muted);margin-top:4px;letter-spacing:1px;text-transform:uppercase}
+.nav-section{padding:10px 0}
+.nav-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);padding:6px 20px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;transition:.2s;border-left:3px solid transparent;font-size:13px;font-weight:600;color:var(--muted)}
+.nav-item:hover{color:var(--text);background:rgba(0,245,255,.04)}
+.nav-item.active{color:var(--neon);border-left-color:var(--neon);background:rgba(0,245,255,.06)}
+.nav-item .icon{width:18px;text-align:center;font-size:15px}
+.main-wrap{margin-left:var(--sidebar);min-height:100vh;position:relative;z-index:1}
+.topbar{background:rgba(6,8,16,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar-left{display:flex;align-items:center;gap:12px}
+.page-name{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700}
+.topbar-right{display:flex;align-items:center;gap:10px}
+#adminBadge{font-size:11px;color:var(--neon);background:rgba(0,245,255,.08);border:1px solid rgba(0,245,255,.2);padding:4px 10px;border-radius:4px;font-weight:700;letter-spacing:1px}
+.content{padding:24px}
+
+/* ── CARDS ── */
+.stat-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:14px;margin-bottom:24px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;position:relative;overflow:hidden;transition:.3s}
+.stat-card:hover{border-color:var(--border2);transform:translateY(-2px)}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.stat-card.s-blue::before{background:linear-gradient(90deg,var(--neon),transparent)}
+.stat-card.s-green::before{background:linear-gradient(90deg,var(--green),transparent)}
+.stat-card.s-pink::before{background:linear-gradient(90deg,var(--neon2),transparent)}
+.stat-card.s-gold::before{background:linear-gradient(90deg,var(--gold),transparent)}
+.stat-card.s-orange::before{background:linear-gradient(90deg,var(--orange),transparent)}
+.stat-card.s-purple::before{background:linear-gradient(90deg,#9b59b6,transparent)}
+.stat-card.s-yellow::before{background:linear-gradient(90deg,#ffaa00,transparent)}
+.stat-num{font-family:'Orbitron',sans-serif;font-size:26px;font-weight:900;margin-bottom:4px}
+.stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+
+/* ── TABLE ── */
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.table-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.table-title{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700}
+table.data-table{width:100%;border-collapse:collapse}
+table.data-table th{background:var(--card2);color:var(--muted);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:11px 16px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+table.data-table td{padding:11px 16px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle}
+table.data-table tr:last-child td{border-bottom:none}
+table.data-table tbody tr{transition:.2s}
+table.data-table tbody tr:hover{background:rgba(0,245,255,.02)}
+
+/* ── FORM ── */
+.form-group{margin-bottom:15px}
+.form-label{display:block;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px}
+.form-control{width:100%;background:var(--dark2);border:1px solid var(--border);color:var(--text);padding:9px 13px;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:500;outline:none;transition:.3s;-webkit-appearance:none}
+.form-control:focus{border-color:var(--neon);box-shadow:0 0 0 3px rgba(0,245,255,.07)}
+.form-control::placeholder{color:var(--muted)}
+select.form-control{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7299' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+textarea.form-control{resize:vertical;min-height:90px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px}
+
+/* ── BANNER UPLOAD ── */
+.banner-upload-wrap{border:2px dashed var(--border);border-radius:10px;transition:.3s;background:var(--dark2)}
+.banner-upload-wrap:hover,.banner-upload-wrap.drag-over{border-color:var(--neon);background:rgba(0,245,255,.04)}
+.banner-upload-inner{padding:20px;text-align:center;cursor:pointer;position:relative}
+.banner-upload-inner input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.banner-preview-img{width:100%;max-height:160px;object-fit:cover;border-radius:8px;margin-top:10px;border:1px solid var(--border)}
+.banner-tabs{display:flex;gap:4px;margin-bottom:10px}
+.banner-tab{flex:1;padding:7px;border:1px solid var(--border);background:var(--card2);color:var(--muted);border-radius:6px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;text-align:center;transition:.2s;text-transform:uppercase;letter-spacing:.5px}
+.banner-tab.active{border-color:var(--neon);color:var(--neon);background:rgba(0,245,255,.07)}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:7px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;text-decoration:none;cursor:pointer;border:none;transition:.3s}
+.btn-primary{background:var(--neon);color:#000;box-shadow:0 0 20px rgba(0,245,255,.2)}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 0 35px rgba(0,245,255,.4)}
+.btn-secondary{background:transparent;color:var(--neon);border:1px solid var(--neon)}
+.btn-secondary:hover{background:rgba(0,245,255,.08)}
+.btn-danger{background:var(--neon2);color:#fff;box-shadow:0 0 15px rgba(255,0,110,.2)}
+.btn-danger:hover{box-shadow:0 0 25px rgba(255,0,110,.4)}
+.btn-success{background:var(--green);color:#000}
+.btn-warn{background:var(--orange);color:#fff}
+.btn-ghost{background:var(--card2);color:var(--text);border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--neon);color:var(--neon)}
+.btn-sm{padding:6px 13px;font-size:11px}
+.btn-xs{padding:4px 8px;font-size:10px}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(8px);z-index:9999;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.active{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;animation:modalIn .3s ease both}
+.modal-lg{max-width:800px}
+@keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(16px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-hd{padding:20px 24px 0;display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:800}
+.modal-close{width:32px;height:32px;background:var(--dark2);border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s}
+.modal-close:hover{color:var(--neon);border-color:var(--neon)}
+.modal-body{padding:20px 24px 24px;overflow-y:auto;max-height:80vh}
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.badge-green{background:rgba(0,255,136,.12);color:var(--green);border:1px solid rgba(0,255,136,.25)}
+.badge-red{background:rgba(255,0,110,.12);color:var(--neon2);border:1px solid rgba(255,0,110,.25)}
+.badge-yellow{background:rgba(255,170,0,.12);color:#ffaa00;border:1px solid rgba(255,170,0,.25)}
+.badge-blue{background:rgba(0,245,255,.1);color:var(--neon);border:1px solid rgba(0,245,255,.2)}
+.badge-gray{background:rgba(107,114,153,.12);color:var(--muted);border:1px solid rgba(107,114,153,.25)}
+.badge-gold{background:rgba(255,215,0,.12);color:var(--gold);border:1px solid rgba(255,215,0,.25)}
+
+/* ── ALERT ── */
+.alert{padding:11px 15px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:13px;display:flex;align-items:flex-start;gap:8px}
+.alert-s{background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.25);color:var(--green)}
+.alert-e{background:rgba(255,0,110,.08);border:1px solid rgba(255,0,110,.25);color:var(--neon2)}
+.alert-i{background:rgba(0,245,255,.08);border:1px solid rgba(0,245,255,.2);color:var(--neon)}
+.alert-w{background:rgba(255,107,0,.08);border:1px solid rgba(255,107,0,.25);color:var(--orange)}
+.hidden{display:none!important}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;right:24px;z-index:99999;min-width:260px;padding:13px 18px;border-radius:10px;font-size:13px;font-weight:600;animation:toastIn .3s ease both;display:flex;align-items:center;gap:8px}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── TOURNAMENT CARDS on HOME ── */
+.tour-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:20px}
+.tour-card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:.3s;cursor:pointer}
+.tour-card:hover{transform:translateY(-3px);border-color:rgba(0,245,255,.3);box-shadow:0 8px 30px rgba(0,0,0,.4)}
+.tour-card-banner{width:100%;height:140px;object-fit:cover;background:linear-gradient(135deg,var(--dark2),var(--card2));display:flex;align-items:center;justify-content:center;font-size:48px;font-family:'Orbitron',sans-serif;font-weight:900;color:var(--neon)}
+.tour-card-banner img{width:100%;height:100%;object-fit:cover}
+.tour-card-body{padding:14px 16px}
+.tour-card-name{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:800;margin-bottom:6px;line-height:1.3}
+.tour-card-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.tour-card-meta span{font-size:11px;color:var(--muted)}
+.tour-card-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding-top:10px;border-top:1px solid var(--border)}
+.tour-card-stat{text-align:center}
+.tour-card-stat .val{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900}
+.tour-card-stat .lbl{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+
+/* ── SEARCH ── */
+.search-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+.search-bar .form-control{flex:1;min-width:160px;max-width:260px}
+
+/* ── SECTIONS ── */
+.section{display:none}
+.section.active{display:block}
+
+/* ── HAMBURGER ── */
+.hbg{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:5px;background:none;border:none}
+.hbg span{width:22px;height:2px;background:var(--neon);border-radius:2px}
+
+/* ── LOG ── */
+.log-area{background:var(--dark2);border:1px solid var(--border);border-radius:8px;padding:13px;font-family:monospace;font-size:12px;max-height:220px;overflow-y:auto;line-height:1.8}
+.log-area .log-ok{color:var(--green)}.log-area .log-err{color:var(--neon2)}.log-area .log-warn{color:var(--orange)}.log-area .log-info{color:var(--neon)}
+
+/* ── PRIZE ROWS ── */
+.prize-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+
+/* ── TIME FILTER ── */
+.time-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.time-pill{padding:5px 12px;border-radius:4px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:12px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:600;transition:.2s}
+.time-pill:hover,.time-pill.active{border-color:var(--neon);color:var(--neon);background:rgba(0,245,255,.06)}
+
+/* ── LOADING SPINNER ── */
+.spinner{display:inline-block;width:20px;height:20px;border:2px solid rgba(0,245,255,.2);border-top-color:var(--neon);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── UPLOAD PROGRESS ── */
+.upload-progress{background:var(--dark2);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-top:8px}
+.upload-bar{height:4px;background:linear-gradient(90deg,var(--neon),#0066ff);transition:width .3s;width:0%}
+.upload-info{padding:8px 12px;font-size:12px;color:var(--muted)}
+
+/* ── TABS ── */
+.tab-btn{flex:1;padding:8px 12px;background:none;border:none;color:var(--muted);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;cursor:pointer;border-radius:7px;transition:.2s;text-align:center}
+.tab-btn.active{background:var(--card);color:var(--neon);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:translateX(0)}
+  .main-wrap{margin-left:0}
+  .hbg{display:flex}
+  .form-row,.form-row-3{grid-template-columns:1fr}
+  .tour-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════ LOGIN ══════════ -->
+<div id="loginPage">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:40px;width:100%;max-width:400px;position:relative;z-index:1">
+    <div style="text-align:center;margin-bottom:32px">
+      <!-- LOGO - No image needed, pure CSS -->
+      <div style="display:flex;justify-content:center;margin-bottom:12px">
+        <div style="width:54px;height:54px;background:linear-gradient(135deg,var(--neon),#0055ff);border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;font-weight:900;font-size:22px;color:#000;box-shadow:0 0 24px rgba(0,245,255,.35)">K</div>
+      </div>
+      <div style="font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;letter-spacing:3px;margin-bottom:6px">KBX<span style="color:var(--neon)">ESPORTS</span></div>
+      <div style="font-size:11px;color:var(--muted);letter-spacing:2px;text-transform:uppercase">Admin Panel v2</div>
+    </div>
+    <div class="form-group"><label class="form-label">Username</label><input type="text" class="form-control" id="loginUser" placeholder="superadmin" autofocus oninput="document.getElementById('loginErr').classList.add('hidden')"></div>
+    <div class="form-group"><label class="form-label">Password</label><input type="password" class="form-control" id="loginPass" placeholder="••••••••" oninput="document.getElementById('loginErr').classList.add('hidden')"></div>
+    <div id="loginErr" class="alert alert-e hidden" style="margin-top:10px"></div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:12px" onclick="doLogin()">🔐 Login</button>
+  </div>
+</div>
+
+<!-- ══════════ APP ══════════ -->
+<div id="app">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <a class="kbx-logo" href="https://kbxesports.co.in" target="_blank">
+        <div class="logo-icon">K</div>
+        <div class="logo-text">KBX<span>ESPORTS</span></div>
+      </a>
+      <small>Admin Panel v2</small>
+    </div>
+    <nav>
+      <div class="nav-section">
+        <div class="nav-label">Main</div>
+        <div class="nav-item active" onclick="nav('dashboard')"><span class="icon">📊</span>Dashboard</div>
+        <div class="nav-item" onclick="nav('tournaments')"><span class="icon">🏆</span>Tournaments</div>
+        <div class="nav-item" onclick="nav('registrations')"><span class="icon">👥</span>Registrations</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Payments</div>
+        <div class="nav-item" onclick="nav('verify')"><span class="icon">✅</span>Verify Payment</div>
+        <div class="nav-item" onclick="nav('csv')"><span class="icon">📄</span>CSV Match</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Tournament Ops</div>
+        <div class="nav-item" onclick="nav('groups')"><span class="icon">🗂️</span>Group Management</div>
+        <div class="nav-item" onclick="nav('teams')"><span class="icon">🛡️</span>Team Management</div>
+        <div class="nav-item" onclick="nav('results')"><span class="icon">🏅</span>Results</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Communications</div>
+        <div class="nav-item" onclick="nav('mail')"><span class="icon">📧</span>Mail Center</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Site</div>
+        <div class="nav-item" onclick="nav('website')"><span class="icon">🌐</span>Website Edit</div>
+        <div class="nav-item" onclick="nav('news')"><span class="icon">📰</span>News</div>
+      </div>
+      <div class="nav-section">
+        <div class="nav-label">Admin</div>
+        <div class="nav-item" onclick="nav('members')"><span class="icon">👤</span>Team Members</div>
+        <div class="nav-item" onclick="nav('settings')"><span class="icon">⚙️</span>Settings</div>
+        <div class="nav-item" onclick="doLogout()"><span class="icon">🚪</span>Logout</div>
+      </div>
+    </nav>
+  </aside>
+
+  <div class="main-wrap">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="hbg" onclick="document.getElementById('sidebar').classList.toggle('open')"><span></span><span></span><span></span></button>
+        <div class="page-name" id="pageTitle">Dashboard</div>
+      </div>
+      <div class="topbar-right">
+        <span id="adminBadge">SUPER_ADMIN</span>
+        <a href="https://kbxesports.co.in" target="_blank" class="btn btn-ghost btn-sm">🌐 Site</a>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ── DASHBOARD ── -->
+      <div id="sec-dashboard" class="section active">
+        <div class="stat-cards" id="dashStats">
+          <div class="stat-card s-blue"><div class="stat-num" id="dTotal" style="color:var(--neon)">—</div><div class="stat-label">Total Regs</div></div>
+          <div class="stat-card s-yellow"><div class="stat-num" id="dPending" style="color:#ffaa00">—</div><div class="stat-label">Pending</div></div>
+          <div class="stat-card s-green"><div class="stat-num" id="dConfirmed" style="color:var(--green)">—</div><div class="stat-label">Confirmed</div></div>
+          <div class="stat-card s-pink"><div class="stat-num" id="dFailed" style="color:var(--neon2)">—</div><div class="stat-label">Failed</div></div>
+          <div class="stat-card s-gold"><div class="stat-num" id="dTours" style="color:var(--gold)">—</div><div class="stat-label">Tournaments</div></div>
+          <div class="stat-card s-purple"><div class="stat-num" id="dToday" style="color:#9b59b6">—</div><div class="stat-label">Today</div></div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px">
+          <button class="btn btn-primary btn-sm" onclick="nav('tournaments');setTimeout(()=>openTourModal(),200)">➕ New Tournament</button>
+          <button class="btn btn-secondary btn-sm" onclick="nav('verify')">✅ Verify Payments</button>
+          <button class="btn btn-ghost btn-sm" onclick="nav('mail')">📧 Send Mail</button>
+          <button class="btn btn-ghost btn-sm" onclick="loadAllData().then(()=>loadDash())">🔄 Refresh</button>
+        </div>
+
+        <!-- Tournament Cards Preview -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div style="font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:var(--neon)">🏆 Active Tournaments</div>
+          <button class="btn btn-ghost btn-xs" onclick="nav('tournaments')">View All →</button>
+        </div>
+        <div class="tour-grid" id="dashTourCards" style="margin-bottom:24px">
+          <div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted)"><div class="spinner"></div> Loading...</div>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-header"><div class="table-title">Recent Registrations</div></div>
+          <div style="overflow-x:auto"><table class="data-table"><thead><tr><th>Code</th><th>Team</th><th>Tournament</th><th>WhatsApp</th><th>Status</th><th>Time</th></tr></thead>
+          <tbody id="recentRegs"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted)"><div class="spinner"></div></td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- ── TOURNAMENTS ── -->
+      <div id="sec-tournaments" class="section">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+          <div style="font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700">Tournaments</div>
+          <button class="btn btn-primary btn-sm" onclick="openTourModal()">➕ New Tournament</button>
+        </div>
+        <!-- Tournament Cards -->
+        <div class="tour-grid" id="tourCards" style="margin-bottom:24px"></div>
+        <div class="table-wrap">
+          <div class="table-header">
+            <div class="table-title">All Tournaments (Table)</div>
+            <select class="form-control" id="tourStatusFilter" style="width:160px" onchange="loadTournaments()">
+              <option value="">All Status</option>
+              <option>UPCOMING</option><option>OPEN</option><option>LIVE</option><option>ONGOING</option><option>ENDED</option>
+            </select>
+          </div>
+          <div style="overflow-x:auto"><table class="data-table"><thead><tr><th>ID</th><th>Banner</th><th>Name</th><th>Mode</th><th>Slots</th><th>Fee</th><th>Prize</th><th>Status</th><th>Match Date</th><th>Actions</th></tr></thead>
+          <tbody id="tourTable"><tr><td colspan="10" style="text-align:center;padding:30px;color:var(--muted)"><div class="spinner"></div></td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- ── REGISTRATIONS ── -->
+      <div id="sec-registrations" class="section">
+        <div class="search-bar">
+          <input class="form-control" id="regSearch" placeholder="🔍 Search team/code/UTR/email..." oninput="filterRegs()">
+          <select class="form-control" id="regTourFilter" style="width:200px" onchange="filterRegs()"><option value="">All Tournaments</option></select>
+          <select class="form-control" id="regStatusFilter" style="width:140px" onchange="filterRegs()">
+            <option value="">All Status</option><option>PENDING</option><option>CONFIRMED</option><option>FAILED</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="exportRegCSV()">⬇ Export CSV</button>
+        </div>
+        <div class="time-pills" id="regTimePills">
+          <div class="time-pill" onclick="setTimeFilter(30,'reg',this)">30min</div>
+          <div class="time-pill" onclick="setTimeFilter(60,'reg',this)">1hr</div>
+          <div class="time-pill" onclick="setTimeFilter(240,'reg',this)">4hr</div>
+          <div class="time-pill" onclick="setTimeFilter(1440,'reg',this)">Today</div>
+          <div class="time-pill" onclick="setTimeFilter(10080,'reg',this)">7 Days</div>
+          <div class="time-pill active" onclick="setTimeFilter(0,'reg',this)">All</div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header">
+            <div class="table-title">Registrations <span id="regCount" style="color:var(--muted);font-size:12px"></span></div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-success btn-sm" onclick="bulkAction('CONFIRMED')">✅ Bulk Confirm</button>
+              <button class="btn btn-danger btn-sm" onclick="bulkAction('FAILED')">❌ Bulk Reject</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+            <th><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"></th>
+            <th>Code</th><th>Team</th><th>Tournament</th><th>Leader</th><th>WhatsApp</th><th>UTR</th><th>Status</th><th>Time</th><th>Actions</th>
+          </tr></thead><tbody id="regTable"><tr><td colspan="10" style="text-align:center;padding:30px;color:var(--muted)"><div class="spinner"></div></td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- ── VERIFY ── -->
+      <div id="sec-verify" class="section">
+        <div class="search-bar">
+          <input class="form-control" id="verifySearch" placeholder="🔍 Search UTR, team, code..." oninput="filterVerify()" style="max-width:400px">
+          <select class="form-control" id="verifyTourFilter" style="width:200px" onchange="filterVerify()"><option value="">All Tournaments</option></select>
+        </div>
+        <div class="time-pills">
+          <div class="time-pill" onclick="setTimeFilter(30,'verify',this)">30min</div>
+          <div class="time-pill" onclick="setTimeFilter(60,'verify',this)">1hr</div>
+          <div class="time-pill" onclick="setTimeFilter(240,'verify',this)">4hr</div>
+          <div class="time-pill" onclick="setTimeFilter(1440,'verify',this)">Today</div>
+          <div class="time-pill" onclick="setTimeFilter(2880,'verify',this)">2 Days</div>
+          <div class="time-pill active" onclick="setTimeFilter(0,'verify',this)">All</div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header"><div class="table-title">Pending Payments <span id="pendingCount" style="color:var(--muted);font-size:12px"></span></div></div>
+          <div style="overflow-x:auto"><table class="data-table"><thead><tr>
+            <th><input type="checkbox" id="selectAllVerify" onchange="toggleSelectVerify()"></th>
+            <th>Code</th><th>Team</th><th>Tournament</th><th>UTR</th><th>Amount</th><th>Screenshot</th><th>Time</th><th>Actions</th>
+          </tr></thead><tbody id="verifyTable"><tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted)"><div class="spinner"></div></td></tr></tbody></table></div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-success btn-sm" onclick="bulkVerifyAction('CONFIRMED')">✅ Bulk Confirm Selected</button>
+          <button class="btn btn-danger btn-sm" onclick="bulkVerifyAction('FAILED')">❌ Bulk Reject Selected</button>
+        </div>
+      </div>
+
+      <!-- ── CSV ── -->
+      <div id="sec-csv" class="section">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px">
+          <div class="table-wrap">
+            <div class="table-header"><div class="table-title">Upload CSV</div></div>
+            <div style="padding:20px">
+              <div class="form-group"><label class="form-label">Payment Provider</label>
+                <select class="form-control" id="csvProvider" onchange="const f=document.getElementById('csvFile').files[0];if(f&&csvTransactions.length){const r=new FileReader();r.onload=e=>parseCSV(e.target.result);r.readAsText(f);}"><option value="phonepe">PhonePe</option><option value="bharatpe">BharatPe</option><option value="gpay">Google Pay</option><option value="paytm">Paytm</option></select>
+              </div>
+              <div class="form-group"><label class="form-label">Tournament (optional)</label><select class="form-control" id="csvTourFilter"><option value="">All</option></select></div>
+              <div class="form-group"><label class="form-label">CSV File</label>
+                <div class="banner-upload-wrap" id="csvDropZone">
+                  <div class="banner-upload-inner" style="padding:28px">
+                    <input type="file" id="csvFile" accept=".csv">
+                    <div style="font-size:28px;margin-bottom:8px">📄</div>
+                    <div style="color:var(--neon);font-weight:700;font-size:14px">Click or drop CSV</div>
+                    <div id="csvFileName" style="color:var(--muted);font-size:12px;margin-top:6px">No file selected</div>
+                  </div>
+                </div>
+              </div>
+              <div id="csvPreview" class="hidden">
+                <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Preview (<span id="csvCount">0</span> transactions)</div>
+                <div style="max-height:120px;overflow-y:auto;font-size:12px;background:var(--dark2);border:1px solid var(--border);border-radius:6px;padding:10px" id="csvPreviewList"></div>
+              </div>
+              <button class="btn btn-primary btn-sm" style="width:100%;justify-content:center;margin-top:12px" onclick="runCSVMatch()">⚡ Auto Match UTRs</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <div class="table-header"><div class="table-title">Match Results</div></div>
+            <div style="padding:20px">
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+                <div style="background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.2);border-radius:8px;padding:12px;text-align:center"><div style="font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;color:var(--green)" id="csvMatched">0</div><div style="font-size:11px;color:var(--muted)">Matched</div></div>
+                <div style="background:rgba(255,107,0,.08);border:1px solid rgba(255,107,0,.2);border-radius:8px;padding:12px;text-align:center"><div style="font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;color:var(--orange)" id="csvMismatch">0</div><div style="font-size:11px;color:var(--muted)">Mismatch</div></div>
+                <div style="background:rgba(107,114,153,.08);border:1px solid rgba(107,114,153,.2);border-radius:8px;padding:12px;text-align:center"><div style="font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;color:var(--muted)" id="csvNotFound">0</div><div style="font-size:11px;color:var(--muted)">Not Found</div></div>
+              </div>
+              <div class="log-area" id="csvLog"><span style="color:var(--muted)">Upload CSV to see results...</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── GROUPS ── -->
+      <div id="sec-groups" class="section">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:20px">
+          <div><label class="form-label">Tournament</label><select class="form-control" id="groupTourSel" style="width:220px" onchange="loadGroupsForTour()"><option value="">Select...</option></select></div>
+          <div><label class="form-label">Teams per group</label><input type="number" class="form-control" id="groupSize" value="4" min="2" max="20" style="width:80px"></div>
+          <button class="btn btn-primary btn-sm" onclick="createGroupsAuto()">🔀 Auto Create Groups</button>
+          <button class="btn btn-secondary btn-sm" onclick="nav('mail')">📧 Mail Groups</button>
+        </div>
+        <div id="groupsDisplay" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px"></div>
+      </div>
+
+      <!-- ── TEAMS ── -->
+      <div id="sec-teams" class="section">
+        <div class="search-bar">
+          <input class="form-control" id="teamSearch" placeholder="🔍 Search team/code/player..." oninput="filterTeams()">
+          <select class="form-control" id="teamTourFilter" style="width:200px" onchange="filterTeams()"><option value="">All Tournaments</option></select>
+          <select class="form-control" id="teamGroupFilter" style="width:140px" onchange="filterTeams()"><option value="">All Groups</option></select>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header"><div class="table-title">Teams <span id="teamCount" style="color:var(--muted);font-size:12px"></span></div></div>
+          <div style="overflow-x:auto"><table class="data-table"><thead><tr><th>Code</th><th>Team</th><th>Leader</th><th>WhatsApp</th><th>Tournament</th><th>Group</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="teamsTable"><tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted)">Select tournament to view teams</td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- ── RESULTS ── -->
+      <div id="sec-results" class="section">
+        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;margin-bottom:20px">
+          <div><label class="form-label">Tournament</label><select class="form-control" id="resultTourSel" style="width:260px" onchange="loadResultTeams()"><option value="">Select...</option></select></div>
+          <button class="btn btn-secondary btn-sm" onclick="calcTotals()">🧮 Calculate Totals</button>
+          <button class="btn btn-primary btn-sm" onclick="saveResults()">💾 Save Results</button>
+        </div>
+        <div class="table-wrap">
+          <div class="table-header"><div class="table-title">Enter Results</div><div style="font-size:12px;color:var(--muted)">Sorted by Total Points</div></div>
+          <div style="overflow-x:auto"><table class="data-table"><thead><tr><th>#</th><th>Team</th><th>Code</th><th>Kills</th><th>Placement Pts</th><th>Total</th><th>Prize (₹)</th></tr></thead>
+          <tbody id="resultsBody"><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted)">Select a tournament</td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- ── MAIL ── -->
+      <div id="sec-mail" class="section">
+        <div class="tabs" style="display:flex;gap:4px;background:var(--dark2);border:1px solid var(--border);border-radius:10px;padding:4px;margin-bottom:24px;max-width:500px">
+          <button class="tab-btn active" onclick="switchMailTab('room',this)">🏟️ Room Details</button>
+          <button class="tab-btn" onclick="switchMailTab('custom',this)">✉️ Custom Mail</button>
+          <button class="tab-btn" onclick="switchMailTab('bulk',this)">📢 Bulk Mail</button>
+        </div>
+        <div id="mailTabRoom">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:800px">
+            <div>
+              <div class="form-group"><label class="form-label">Tournament</label><select class="form-control" id="roomTourSel" onchange="loadRoomGroups()"><option value="">Select...</option></select></div>
+              <div class="form-group"><label class="form-label">Send To</label><select class="form-control" id="roomGroupSel"><option value="all">All Confirmed</option></select></div>
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">Room ID</label><input type="text" class="form-control" id="roomId" placeholder="7482910"></div>
+                <div class="form-group"><label class="form-label">Password</label><input type="text" class="form-control" id="roomPass" placeholder="kbx123"></div>
+              </div>
+              <div class="form-group"><label class="form-label">Match Time</label><input type="text" class="form-control" id="matchTime" placeholder="Sunday 8:00 PM IST"></div>
+              <div class="form-group"><label class="form-label">Custom Message</label><textarea class="form-control" id="roomCustomMsg" rows="3" placeholder="Additional instructions..."></textarea></div>
+              <button class="btn btn-primary btn-sm" onclick="sendRoomMail()">📧 Send Room Details</button>
+            </div>
+            <div class="table-wrap"><div class="table-header"><div class="table-title">Preview Recipients</div></div>
+              <div style="padding:14px;max-height:350px;overflow-y:auto" id="roomRecipientList"><p style="color:var(--muted);font-size:13px">Select tournament...</p></div>
+            </div>
+          </div>
+        </div>
+        <div id="mailTabCustom" class="hidden">
+          <div style="max-width:600px">
+            <div class="form-group"><label class="form-label">Tournament</label><select class="form-control" id="customMailTour"><option value="">All</option></select></div>
+            <div class="form-group"><label class="form-label">Send To</label><select class="form-control" id="customMailTarget"><option value="all">All Registered</option><option value="CONFIRMED">Confirmed Only</option><option value="PENDING">Pending Only</option></select></div>
+            <div class="form-group"><label class="form-label">Subject</label><input type="text" class="form-control" id="customMailSubject" placeholder="Email subject"></div>
+            <div class="form-group"><label class="form-label">Message</label><textarea class="form-control" id="customMailMsg" rows="6" placeholder="Your message..."></textarea></div>
+            <div id="customMailPreview" style="font-size:13px;color:var(--muted);margin-bottom:12px"></div>
+            <button class="btn btn-secondary btn-sm" onclick="previewCustomMail()">👁 Preview Count</button>
+            <button class="btn btn-primary btn-sm" style="margin-left:8px" onclick="sendCustomMail()">📧 Send</button>
+          </div>
+        </div>
+        <div id="mailTabBulk" class="hidden">
+          <div style="max-width:600px">
+            <div class="alert alert-w">⚠️ Bulk mail sends to ALL recipients. Use carefully.</div>
+            <div class="form-group"><label class="form-label">Tournament</label><select class="form-control" id="bulkMailTour" onchange="previewBulkCount()"><option value="">All</option></select></div>
+            <div class="form-group"><label class="form-label">Subject</label><input type="text" class="form-control" id="bulkSubject" placeholder="Important announcement..."></div>
+            <div class="form-group"><label class="form-label">Message</label><textarea class="form-control" id="bulkMsg" rows="5"></textarea></div>
+            <div id="bulkPreviewCount" style="font-size:13px;color:var(--neon);margin-bottom:12px"></div>
+            <button class="btn btn-primary btn-sm" onclick="sendBulkMail()">📢 Send Bulk Mail</button>
+          </div>
+        </div>
+        <div id="mailLog" class="log-area hidden" style="max-width:600px;margin-top:16px"></div>
+      </div>
+
+      <!-- ── WEBSITE EDIT ── -->
+      <div id="sec-website" class="section">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:900px">
+          <div class="table-wrap"><div class="table-header"><div class="table-title">🌐 Site Appearance</div></div>
+            <div style="padding:20px">
+              <div class="form-group"><label class="form-label">Site Name</label><input type="text" class="form-control" id="ws-site_name" placeholder="KBX Esports"></div>
+              <div class="form-group"><label class="form-label">Tagline</label><input type="text" class="form-control" id="ws-site_tagline" placeholder="India's Premier BGMI Platform"></div>
+              <div class="form-group"><label class="form-label">Announcement Banner</label><textarea class="form-control" id="ws-announce_text" rows="2"></textarea></div>
+              <div class="form-group"><label class="form-label">Form Status</label>
+                <select class="form-control" id="ws-form_status"><option value="OPEN">🟢 OPEN — Registration Active</option><option value="CLOSED">🔴 CLOSED — No Registrations</option></select>
+              </div>
+            </div>
+          </div>
+          <div class="table-wrap"><div class="table-header"><div class="table-title">📱 Social Links</div></div>
+            <div style="padding:20px">
+              <div class="form-group"><label class="form-label">YouTube</label><input type="text" class="form-control" id="ws-youtube" placeholder="https://youtube.com/@..."></div>
+              <div class="form-group"><label class="form-label">Instagram</label><input type="text" class="form-control" id="ws-instagram" placeholder="https://instagram.com/..."></div>
+              <div class="form-group"><label class="form-label">Discord</label><input type="text" class="form-control" id="ws-discord" placeholder="https://discord.gg/..."></div>
+              <div class="form-group"><label class="form-label">WhatsApp Group</label><input type="text" class="form-control" id="ws-whatsapp_group" placeholder="https://chat.whatsapp.com/..."></div>
+            </div>
+          </div>
+          <div class="table-wrap"><div class="table-header"><div class="table-title">💰 Payment Info</div></div>
+            <div style="padding:20px">
+              <div class="form-group"><label class="form-label">UPI ID</label><input type="text" class="form-control" id="ws-upi_id" placeholder="kbxesports@paytm"></div>
+              <div class="form-group"><label class="form-label">UPI Name</label><input type="text" class="form-control" id="ws-upi_name" placeholder="KBX Esports"></div>
+              <div class="form-group"><label class="form-label">Default Entry Fee (₹)</label><input type="number" class="form-control" id="ws-entry_fee" placeholder="100"></div>
+            </div>
+          </div>
+          <div class="table-wrap"><div class="table-header"><div class="table-title">📊 Homepage Stats</div></div>
+            <div style="padding:20px">
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">Players</label><input type="text" class="form-control" id="ws-stat_players" placeholder="500+"></div>
+                <div class="form-group"><label class="form-label">Tournaments</label><input type="text" class="form-control" id="ws-stat_tournaments" placeholder="10+"></div>
+              </div>
+              <div class="form-row">
+                <div class="form-group"><label class="form-label">Prize Pool</label><input type="text" class="form-control" id="ws-stat_prize" placeholder="₹50K+"></div>
+                <div class="form-group"><label class="form-label">Winners</label><input type="text" class="form-control" id="ws-stat_winners" placeholder="200+"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:20px">
+          <button class="btn btn-primary" onclick="saveWebsiteSettings()">💾 Save All Settings</button>
+          <span id="wsMsg" class="hidden" style="margin-left:16px;font-size:13px;color:var(--green)"></span>
+        </div>
+      </div>
+
+      <!-- ── NEWS ── -->
+      <div id="sec-news" class="section">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <div style="font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700">News</div>
+          <button class="btn btn-primary btn-sm" onclick="openNewsModal()">➕ Add News</button>
+        </div>
+        <div class="table-wrap">
+          <div style="overflow-x:auto"><table class="data-table"><thead><tr><th>Title</th><th>Category</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="newsAdminTable"><tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted)"><div class="spinner"></div></td></tr></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- ── MEMBERS ── -->
+      <div id="sec-members" class="section">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+          <div style="font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700">Team Members</div>
+          <button class="btn btn-primary btn-sm" onclick="openAddMemberModal()">➕ Add Member</button>
+        </div>
+        <div class="table-wrap" style="margin-bottom:24px">
+          <div style="overflow-x:auto"><table class="data-table"><thead><tr><th>ID</th><th>Username</th><th>Role</th><th>Created</th><th>Last Login</th><th>Actions</th></tr></thead>
+          <tbody id="membersTable"><tr><td colspan="6" style="text-align:center;padding:30px;color:var(--muted)"><div class="spinner"></div></td></tr></tbody></table></div>
+        </div>
+        <div class="table-wrap"><div class="table-header"><div class="table-title">Role Permissions</div></div>
+          <div style="padding:16px 20px">
+            <table class="data-table"><thead><tr><th>Role</th><th>Dashboard</th><th>Verify</th><th>CSV</th><th>Groups</th><th>Mail</th><th>Settings</th><th>Tournaments</th></tr></thead>
+            <tbody>
+              <tr><td><span class="badge badge-gold">SUPER_ADMIN</span></td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+              <tr><td><span class="badge badge-blue">MANAGER</span></td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td><td>❌</td><td>✅</td></tr>
+              <tr><td><span class="badge badge-yellow">VERIFIER</span></td><td>✅</td><td>✅</td><td>✅</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td></tr>
+              <tr><td><span class="badge badge-gray">VIEWER</span></td><td>✅</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td><td>❌</td></tr>
+            </tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SETTINGS ── -->
+      <div id="sec-settings" class="section">
+        <div style="max-width:600px">
+          <div class="table-wrap" style="margin-bottom:20px"><div class="table-header"><div class="table-title">Admin Settings</div></div>
+            <div style="padding:20px">
+              <div class="form-group"><label class="form-label">Admin Notification Email</label><input type="email" class="form-control" id="st-admin_email"></div>
+              <div class="form-group"><label class="form-label">Support Email</label><input type="email" class="form-control" id="st-support_email"></div>
+              <div class="form-group"><label class="form-label">WhatsApp Support Number</label><input type="text" class="form-control" id="st-whatsapp_number" placeholder="91XXXXXXXXXX"></div>
+              <div class="form-group"><label class="form-label">Default Prize Pool</label><input type="text" class="form-control" id="st-prize_pool" placeholder="₹5000"></div>
+              <div class="form-group"><label class="form-label">Max Teams (default)</label><input type="number" class="form-control" id="st-max_teams" placeholder="25"></div>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="saveAdminSettings()">💾 Save Settings</button>
+          <span id="stMsg" class="hidden" style="margin-left:16px;font-size:13px;color:var(--green)"></span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ MODALS ══════════ -->
+
+<!-- Tournament Modal — WITH IMAGE UPLOAD -->
+<div class="modal-overlay" id="tourModal">
+  <div class="modal modal-lg">
+    <div class="modal-hd"><div class="modal-title" id="tourModalTitle">New Tournament</div><button class="modal-close" onclick="closeModal('tourModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Tournament Name *</label><input type="text" class="form-control" id="tm-name" placeholder="BGMI Squad Showdown S1"></div>
+        <div class="form-group"><label class="form-label">Mode *</label>
+          <select class="form-control" id="tm-mode"><option>SQUAD</option><option>DUO</option><option>SOLO</option><option>SQUAD5</option><option>SQUAD6</option></select>
+        </div>
+      </div>
+      <div class="form-row-3">
+        <div class="form-group"><label class="form-label">Total Slots</label><input type="number" class="form-control" id="tm-slots" placeholder="25" min="1"></div>
+        <div class="form-group"><label class="form-label">Entry Fee (₹)</label><input type="number" class="form-control" id="tm-fee" placeholder="100" min="0"></div>
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-control" id="tm-status"><option>UPCOMING</option><option>OPEN</option><option>LIVE</option><option>ONGOING</option><option>ENDED</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Prize Pool</label><input type="text" class="form-control" id="tm-prize" placeholder="₹10,000"></div>
+        <div class="form-group"><label class="form-label">Maps</label><input type="text" class="form-control" id="tm-maps" placeholder="Erangel, Miramar"></div>
+      </div>
+      <div class="form-row-3">
+        <div class="form-group"><label class="form-label">Reg Open Date</label><input type="datetime-local" class="form-control" id="tm-regopen"></div>
+        <div class="form-group"><label class="form-label">Reg Close Date</label><input type="datetime-local" class="form-control" id="tm-regclose"></div>
+        <div class="form-group"><label class="form-label">Match Date</label><input type="text" class="form-control" id="tm-matchdate" placeholder="Mar 15, 2026 8PM"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="form-control" id="tm-desc" rows="2" placeholder="Tournament description..."></textarea></div>
+
+      <!-- ★ BANNER SECTION — IMAGE UPLOAD ★ -->
+      <div class="form-group">
+        <label class="form-label">Tournament Banner</label>
+        <div class="banner-tabs">
+          <div class="banner-tab active" onclick="switchBannerTab('upload',this)">📤 Upload Image</div>
+          <div class="banner-tab" onclick="switchBannerTab('url',this)">🔗 Image URL</div>
+          <div class="banner-tab" onclick="switchBannerTab('emoji',this)">🎮 Emoji/Text</div>
+        </div>
+
+        <!-- Upload Tab -->
+        <div id="bannerTabUpload">
+          <div class="banner-upload-wrap" id="bannerDropZone">
+            <div class="banner-upload-inner">
+              <input type="file" id="tm-bannerFile" accept="image/png,image/jpeg,image/gif,image/webp" onchange="handleBannerFile(this)">
+              <div style="font-size:32px;margin-bottom:8px">🖼️</div>
+              <div style="color:var(--neon);font-weight:700;font-size:14px">Click or drop image</div>
+              <div style="color:var(--muted);font-size:11px;margin-top:4px">PNG • JPG • GIF • WEBP (max 5MB)</div>
+            </div>
+          </div>
+          <div id="bannerUploadProgress" class="upload-progress hidden">
+            <div class="upload-bar" id="bannerUploadBar"></div>
+            <div class="upload-info" id="bannerUploadInfo">Uploading...</div>
+          </div>
+          <div id="bannerUploadResult" class="hidden" style="margin-top:8px">
+            <img id="bannerPreviewImg" class="banner-preview-img" src="" alt="Banner Preview">
+            <div style="font-size:11px;color:var(--green);margin-top:6px" id="bannerUploadMsg"></div>
+            <input type="hidden" id="tm-bannerUploadedUrl" value="">
+          </div>
+        </div>
+
+        <!-- URL Tab -->
+        <div id="bannerTabUrl" class="hidden">
+          <input type="text" class="form-control" id="tm-bannerUrl" placeholder="https://drive.google.com/... or https://i.imgur.com/..." oninput="previewBannerUrl()">
+          <div style="font-size:11px;color:var(--muted);margin-top:5px">💡 Google Drive: Share → Anyone with link → Copy link</div>
+          <div id="bannerUrlPreviewWrap" class="hidden" style="margin-top:8px">
+            <img id="bannerUrlPreviewImg" class="banner-preview-img" src="" alt="Preview" onerror="this.style.display='none';document.getElementById('bannerUrlErr').classList.remove('hidden')" onload="this.style.display='block';document.getElementById('bannerUrlErr').classList.add('hidden')">
+            <div id="bannerUrlErr" class="hidden" style="font-size:11px;color:var(--neon2);margin-top:4px">⚠️ Cannot preview this URL. Direct image links work best.</div>
+          </div>
+        </div>
+
+        <!-- Emoji Tab -->
+        <div id="bannerTabEmoji" class="hidden">
+          <input type="text" class="form-control" id="tm-bannerEmoji" placeholder="🎮 or BGMI SQUAD S1">
+          <div style="font-size:11px;color:var(--muted);margin-top:5px">Used as fallback when no image is set</div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Prize Distribution</label>
+        <div id="prizeRows">
+          <div class="prize-row"><input class="form-control" placeholder="#1 e.g. ₹5000" style="flex:1"><button class="btn btn-ghost btn-xs" onclick="this.closest('.prize-row').remove()">✕</button></div>
+          <div class="prize-row"><input class="form-control" placeholder="#2 e.g. ₹3000" style="flex:1"><button class="btn btn-ghost btn-xs" onclick="this.closest('.prize-row').remove()">✕</button></div>
+          <div class="prize-row"><input class="form-control" placeholder="#3 e.g. ₹1500" style="flex:1"><button class="btn btn-ghost btn-xs" onclick="this.closest('.prize-row').remove()">✕</button></div>
+        </div>
+        <button class="btn btn-ghost btn-xs" style="margin-top:6px" onclick="addPrizeRow()">+ Add Place</button>
+      </div>
+
+      <div id="tourModalErr" class="alert alert-e hidden"></div>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button class="btn btn-primary" onclick="saveTournament()">💾 Save Tournament</button>
+        <button class="btn btn-ghost" onclick="closeModal('tourModal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reg Detail Modal -->
+<div class="modal-overlay" id="regDetailModal">
+  <div class="modal modal-lg">
+    <div class="modal-hd"><div class="modal-title" id="regDetailTitle">Registration Details</div><button class="modal-close" onclick="closeModal('regDetailModal')">✕</button></div>
+    <div class="modal-body" id="regDetailBody"></div>
+  </div>
+</div>
+
+<!-- News Modal -->
+<div class="modal-overlay" id="newsModal">
+  <div class="modal">
+    <div class="modal-hd"><div class="modal-title" id="newsModalTitle">Add News</div><button class="modal-close" onclick="closeModal('newsModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Title *</label><input type="text" class="form-control" id="nm-title"></div>
+      <div class="form-group"><label class="form-label">Category</label>
+        <select class="form-control" id="nm-cat"><option>Announcement</option><option>Results</option><option>Update</option><option>News</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Content *</label><textarea class="form-control" id="nm-content" rows="6"></textarea></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-primary btn-sm" onclick="saveNewsItem()">💾 Save</button>
+        <button class="btn btn-ghost btn-sm" onclick="closeModal('newsModal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Member Modal -->
+<div class="modal-overlay" id="addMemberModal">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-hd"><div class="modal-title">Add Team Member</div><button class="modal-close" onclick="closeModal('addMemberModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Username *</label><input type="text" class="form-control" id="mem-user"></div>
+      <div class="form-group"><label class="form-label">Password *</label><input type="password" class="form-control" id="mem-pass"></div>
+      <div class="form-group"><label class="form-label">Role</label><select class="form-control" id="mem-role"><option>MANAGER</option><option>VERIFIER</option><option>VIEWER</option></select></div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button class="btn btn-primary btn-sm" onclick="saveMember()">Add Member</button>
+        <button class="btn btn-ghost btn-sm" onclick="closeModal('addMemberModal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-body" style="text-align:center;padding:32px">
+      <div style="font-size:48px;margin-bottom:12px" id="confirmIcon">⚠️</div>
+      <div style="font-family:'Orbitron',sans-serif;font-size:16px;margin-bottom:8px" id="confirmTitle">Confirm?</div>
+      <p style="color:var(--muted);font-size:14px;margin-bottom:24px" id="confirmMsg">Are you sure?</p>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button class="btn btn-danger btn-sm" id="confirmYes">Yes, Confirm</button>
+        <button class="btn btn-ghost btn-sm" onclick="closeModal('confirmModal')">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyFJkjzXyoZa6SJXywSXIL1JCf_TP6zls91VzEQMV1HySRRwm--zSuZUjJ58SY4jPWW/exec';
+// For image upload — use ImgBB or similar free API
+// Set your ImgBB API key here (free at imgbb.com)
+const IMGBB_API_KEY = '5c7b075159dba61151c5271f47c5a1f3'; // ← Replace with your key
+
+let currentAdmin = null;
+let allRegs = [];
+let allTours = [];
+let allNews = [];
+let regTimeFilter = 0;
+let verifyTimeFilter = 0;
+let editingTourId = null;
+let editingNewsId = null;
+let csvTransactions = [];
+let currentBannerTab = 'upload';
+
+// ── AUTH ──────────────────────────────────
+async function doLogin() {
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if (!user || !pass) return showLoginErr('Enter username and password');
+  const btn = document.querySelector('#loginPage button');
+  btn.innerHTML = '<div class="spinner"></div> Logging in...'; btn.disabled = true;
+  try {
+    const res = await post({ action:'login', username:user, password:pass });
+    if (res.success) {
+      currentAdmin = { username:user, password:pass, ...res.admin };
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('adminBadge').textContent = res.admin.role;
+      nav('dashboard');
+    } else {
+      showLoginErr(res.error || 'Invalid credentials');
+    }
+  } catch(e) { showLoginErr('Network error. Please try again.'); }
+  finally { btn.innerHTML = '🔐 Login'; btn.disabled = false; }
+}
+function showLoginErr(msg) {
+  const el = document.getElementById('loginErr');
+  el.textContent = '❌ ' + msg;
+  el.classList.remove('hidden');
+}
+function doLogout() { currentAdmin = null; location.reload(); }
+
+// ── NAVIGATION ────────────────────────────
+function nav(sec) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const secEl = document.getElementById('sec-' + sec);
+  if (!secEl) return;
+  secEl.classList.add('active');
+  // Mark active nav by data attribute or onclick text match — use onclick string
+  document.querySelectorAll('.nav-item').forEach(n => {
+    const oc = n.getAttribute('onclick') || '';
+    if (oc.includes("nav('"+sec+"')")) n.classList.add('active');
+  });
+  const titles = { dashboard:'Dashboard', tournaments:'Tournaments', registrations:'Registrations', verify:'Verify Payments', csv:'CSV Match', groups:'Group Management', teams:'Team Management', results:'Results', mail:'Mail Center', website:'Website Edit', news:'News', members:'Team Members', settings:'Settings' };
+  document.getElementById('pageTitle').textContent = titles[sec] || sec;
+  document.getElementById('sidebar').classList.remove('open');
+  if (sec === 'dashboard') loadDash();
+  if (sec === 'tournaments') loadTournaments();
+  if (sec === 'registrations') { if (!allTours.length || !allRegs.length) loadAllData().then(() => filterRegs()); else filterRegs(); }
+  if (sec === 'verify') { if (!allTours.length || !allRegs.length) loadAllData().then(() => populateVerify()); else populateVerify(); }
+  if (sec === 'csv') { if (!allTours.length) loadAllData(); }
+  if (sec === 'groups') { if (!allTours.length) loadAllData().then(() => populateGroupTours()); else populateGroupTours(); }
+  if (sec === 'teams') { if (!allTours.length || !allRegs.length) loadAllData().then(() => populateTeamTours()); else populateTeamTours(); }
+  if (sec === 'results') { if (!allTours.length || !allRegs.length) loadAllData().then(() => populateResultTours()); else populateResultTours(); }
+  if (sec === 'mail') { if (!allTours.length) loadAllData(); }
+  if (sec === 'news') loadNewsAdmin();
+  if (sec === 'members') loadMembers();
+  if (sec === 'settings' || sec === 'website') loadSettings();
+}
+
+// ── API ───────────────────────────────────
+async function post(body) {
+  try {
+    const res = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' }, // Apps Script reads as string
+      body: JSON.stringify(body)
+    });
+    return await res.json();
+  } catch(e) {
+    console.error('POST error:', e);
+    return { success: false, error: 'Network error. Check connection.' };
+  }
+}
+async function get(params) {
+  try {
+    const q = Object.entries(params).map(([k,v]) => k+'='+encodeURIComponent(v)).join('&');
+    const res = await fetch(SCRIPT_URL + '?' + q);
+    return await res.json();
+  } catch(e) {
+    console.error('GET error:', e);
+    return { success: false, error: 'Network error. Check connection.' };
+  }
+}
+function authBody(extra) {
+  return { username: currentAdmin.username, password: currentAdmin.password, ...extra };
+}
+
+// ── LOAD ALL DATA ─────────────────────────
+let _dataLoading = false;
+async function loadAllData() {
+  if (_dataLoading) return Promise.resolve(); // B01: return resolved promise so .then() callers don't crash
+  _dataLoading = true;
+  try {
+    const [regsRes, toursRes] = await Promise.all([
+      post(authBody({ action:'get_regs' })),
+      get({ action:'get_tournaments' })
+    ]);
+    if (regsRes.success) allRegs = regsRes.registrations || [];
+    else toast('Failed to load registrations: ' + (regsRes.error||'Unknown'), 'warn');
+    if (toursRes.success) { allTours = toursRes.tournaments || []; populateTourDropdowns(); }
+    else toast('Failed to load tournaments: ' + (toursRes.error||'Unknown'), 'warn');
+  } catch(e) { console.error('Load error:', e); toast('Network error loading data', 'warn'); }
+  finally { _dataLoading = false; }
+}
+
+function populateTourDropdowns() {
+  const selects = ['regTourFilter','verifyTourFilter','csvTourFilter','groupTourSel','teamTourFilter','resultTourSel','roomTourSel','customMailTour','bulkMailTour'];
+  selects.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const val = el.value;
+    const isFilter = id.includes('Filter') || id.includes('Mail');
+    el.innerHTML = (isFilter ? '<option value="">All</option>' : '<option value="">Select...</option>') +
+      allTours.map(t => `<option value="${esc(t.id)}">${esc(t.name)}</option>`).join('');
+    if (val) el.value = val;
+  });
+}
+
+// ── DASHBOARD ─────────────────────────────
+async function loadDash() {
+  try {
+    const res = await post(authBody({ action:'get_stats' }));
+    if (res.success) {
+      document.getElementById('dTotal').textContent = res.total || 0;
+      document.getElementById('dPending').textContent = res.pending || 0;
+      document.getElementById('dConfirmed').textContent = res.confirmed || 0;
+      document.getElementById('dFailed').textContent = res.failed || 0;
+      document.getElementById('dTours').textContent = res.tournaments || 0;
+      document.getElementById('dToday').textContent = res.todayRegs || 0;
+    } else {
+      toast('Stats load failed: ' + (res.error||'Unknown error'), 'warn');
+    }
+  } catch(e) { toast('Network error loading stats','warn'); }
+
+  if (allRegs.length === 0 || allTours.length === 0) await loadAllData();
+
+  // Tournament cards on dashboard
+  renderTourCards('dashTourCards', allTours.filter(t => t.status !== 'ENDED').slice(0, 6));
+
+  const recent = [...allRegs].sort((a,b) => (Number(b.timestampRaw)||0) - (Number(a.timestampRaw)||0)).slice(0,10);
+  document.getElementById('recentRegs').innerHTML = recent.length ? recent.map(r =>
+    `<tr>
+      <td><span style="font-family:monospace;color:var(--neon);cursor:pointer" onclick="openRegDetail('${esc(r.uniqueCode)}')">${esc(r.uniqueCode)}</span></td>
+      <td><strong>${esc(r.teamName)}</strong></td>
+      <td style="color:var(--muted);font-size:12px">${esc(r.tournamentName)}</td>
+      <td>${esc(r.whatsapp)}</td>
+      <td>${statusBadge(r.status)}</td>
+      <td style="font-size:11px;color:var(--muted)">${esc(r.timestamp)}</td>
+    </tr>`
+  ).join('') : '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted)">No registrations yet</td></tr>';
+}
+
+// ── TOURNAMENT CARDS ──────────────────────
+function renderTourCards(containerId, tours) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (!tours.length) {
+    el.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--muted)">No tournaments yet. <button class="btn btn-primary btn-sm" onclick="openTourModal()" style="margin-left:8px">➕ Create First Tournament</button></div>';
+    return;
+  }
+  el.innerHTML = tours.map(t => {
+    const regCount = allRegs.filter(r => r.tournamentId === t.id && r.status === 'CONFIRMED').length;
+    const bannerBg = getBannerStyle(t);
+    return `<div class="tour-card" onclick="nav('tournaments')">
+      <div class="tour-card-banner" style="${bannerBg.style}" id="tcard-${(t.id||'').replace(/[^a-zA-Z0-9_-]/g,'')}">
+        ${bannerBg.isImg ? `<img src="${esc(bannerBg.src)}" alt="banner" style="width:100%;height:100%;object-fit:cover" onload="this.style.opacity=1" onerror="this.style.display='none'">` : (t.banner||'🎮')}
+      </div>
+      <div class="tour-card-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+          <div class="tour-card-name">${esc(t.name)}</div>
+          ${tourStatusBadge(t.status)}
+        </div>
+        <div class="tour-card-meta">
+          <span>🎮 ${esc(t.mode)}</span>
+          <span>📅 ${esc(t.matchDate||'TBD')}</span>
+          ${t.maps ? `<span>🗺️ ${esc(t.maps)}</span>` : ''}
+        </div>
+        <div class="tour-card-stats">
+          <div class="tour-card-stat"><div class="val" style="color:var(--neon)">₹${esc(String(t.entryFee||0))}</div><div class="lbl">Entry</div></div>
+          <div class="tour-card-stat"><div class="val" style="color:var(--gold)">${esc(String(t.prizePool||'—'))}</div><div class="lbl">Prize</div></div>
+          <div class="tour-card-stat"><div class="val" style="color:var(--green)">${regCount}/${esc(String(t.slots||25))}</div><div class="lbl">Teams</div></div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function getBannerStyle(t) {
+  const url = t.bannerUrl || t.bannerUploadedUrl || '';
+  if (url && url.startsWith('http')) {
+    return { isImg: true, src: url, style: 'background:var(--dark2);padding:0;overflow:hidden' };
+  }
+  const gradients = [
+    'linear-gradient(135deg,#0a1628,#001855)',
+    'linear-gradient(135deg,#1a0020,#500060)',
+    'linear-gradient(135deg,#0d1a00,#1a3d00)',
+    'linear-gradient(135deg,#1a0800,#3d1200)',
+  ];
+  const g = gradients[Math.abs((t.name||'').length % gradients.length)];
+  return { isImg: false, style: `background:${g};display:flex;align-items:center;justify-content:center;font-size:52px`, src: '' };
+}
+
+// kept for safety
+function escapeEmoji(str) { return (str||'').replace(/['"<>&]/g, c => ({'\'':'&#39;','"':'&quot;','<':'&lt;','>':'&gt;','&':'&amp;'}[c]||c)); }
+function esc(str) { return (str||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+// ── TOURNAMENTS ───────────────────────────
+async function loadTournaments() {
+  if (!allTours.length) await loadAllData();
+  renderTourCards('tourCards', list);
+  const sf = document.getElementById('tourStatusFilter').value;
+  let list = allTours;
+  if (sf) list = list.filter(t => t.status === sf);
+  document.getElementById('tourTable').innerHTML = list.length ? list.map(t => {
+    const bannerBg = getBannerStyle(t);
+    const thumb = bannerBg.isImg
+      ? `<img src="${esc(bannerBg.src)}" style="width:48px;height:32px;object-fit:cover;border-radius:5px;border:1px solid var(--border)" onerror="this.style.display='none'">`
+      : `<span style="font-size:20px">${t.banner||'🎮'}</span>`;
+    return `<tr>
+      <td style="font-family:monospace;font-size:11px;color:var(--muted)">${esc(String(t.id||''))}</td>
+      <td>${thumb}</td>
+      <td><strong>${esc(t.name)}</strong></td>
+      <td><span class="badge badge-blue">${esc(t.mode||'')}</span></td>
+      <td>${esc(String(t.registeredCount||0))}/${esc(String(t.slots||''))}</td>
+      <td style="color:var(--neon)">₹${esc(String(t.entryFee||''))}</td>
+      <td style="color:var(--gold)">${esc(String(t.prizePool||''))}</td>
+      <td>${tourStatusBadge(t.status)}</td>
+      <td style="font-size:12px">${esc(t.matchDate||'—')}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-ghost btn-xs" data-tid="${esc(t.id)}" onclick="editTournament(this.dataset.tid)">✏️</button>
+        <button class="btn btn-danger btn-xs" data-tid="${esc(t.id)}" onclick="deleteTour(this.dataset.tid,this.dataset.tname)" data-tname="${esc(t.name)}">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('') : '<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--muted)">No tournaments</td></tr>';
+}
+
+function openTourModal(t) {
+  editingTourId = t ? t.id : null;
+  document.getElementById('tourModalTitle').textContent = t ? '✏️ Edit Tournament' : '➕ New Tournament';
+  ['name','mode','slots','fee','prize','maps','regopen','regclose','matchdate','desc','status'].forEach(f => {
+    const el = document.getElementById('tm-'+f); if(el) el.value = '';
+  });
+  document.getElementById('tm-bannerFile').value = '';
+  document.getElementById('tm-bannerUrl').value = '';
+  document.getElementById('tm-bannerEmoji').value = '';
+  document.getElementById('tm-bannerUploadedUrl').value = ''; // B08: clear stale upload URL
+  document.getElementById('bannerUploadResult').classList.add('hidden');
+  document.getElementById('bannerUrlPreviewWrap').classList.add('hidden');
+  document.getElementById('bannerUploadProgress').classList.add('hidden');
+  // Reset prize rows to default 3 blank rows
+  document.getElementById('prizeRows').innerHTML =
+    ['#1 e.g. ₹5000','#2 e.g. ₹3000','#3 e.g. ₹1500'].map(ph =>
+      `<div class="prize-row"><input class="form-control" placeholder="${ph}" style="flex:1"><button class="btn btn-ghost btn-xs" onclick="this.closest('.prize-row').remove()">✕</button></div>`
+    ).join('');
+  if (t) {
+    document.getElementById('tm-name').value = t.name||'';
+    document.getElementById('tm-mode').value = t.mode||'SQUAD';
+    document.getElementById('tm-slots').value = t.slots||'';
+    document.getElementById('tm-fee').value = t.entryFee||'';
+    document.getElementById('tm-prize').value = t.prizePool||'';
+    document.getElementById('tm-maps').value = t.maps||'';
+    document.getElementById('tm-matchdate').value = t.matchDate||'';
+    document.getElementById('tm-regopen').value = t.regOpen||'';
+    document.getElementById('tm-regclose').value = t.regClose||'';
+    document.getElementById('tm-desc').value = t.description||'';
+    document.getElementById('tm-status').value = t.status||'UPCOMING';
+    // Populate prize rows from saved prizeTable (pipe-separated)
+    if (t.prizeTable) {
+      const prizes = t.prizeTable.split('|').filter(Boolean);
+      if (prizes.length) {
+        document.getElementById('prizeRows').innerHTML = prizes.map((p,i) =>
+          `<div class="prize-row"><input class="form-control" placeholder="#${i+1}" style="flex:1" value="${esc(p)}"><button class="btn btn-ghost btn-xs" onclick="this.closest('.prize-row').remove()">✕</button></div>`
+        ).join('');
+      }
+    }
+    const url = t.bannerUrl || t.bannerUploadedUrl || '';
+    if (url) {
+      document.getElementById('tm-bannerUrl').value = url;
+      const img = document.getElementById('bannerUrlPreviewImg');
+      img.src = url; img.style.display = 'block';
+      document.getElementById('bannerUrlPreviewWrap').classList.remove('hidden');
+      currentBannerTab = 'url'; // FIX: update variable BEFORE calling switchBannerTab
+      switchBannerTab('url', document.querySelectorAll('.banner-tab')[1]);
+    } else if (t.banner) {
+      document.getElementById('tm-bannerEmoji').value = t.banner;
+      currentBannerTab = 'emoji'; // FIX: update variable BEFORE calling switchBannerTab
+      switchBannerTab('emoji', document.querySelectorAll('.banner-tab')[2]);
+    } else {
+      // B02: editing tournament with no banner — reset to upload tab
+      currentBannerTab = 'upload';
+      switchBannerTab('upload', document.querySelectorAll('.banner-tab')[0]);
+    }
+  }
+  // Reset banner tab to upload for new tournament
+  if (!t) {
+    currentBannerTab = 'upload';
+    document.querySelectorAll('.banner-tab').forEach((b,i) => b.classList.toggle('active', i===0));
+    document.getElementById('bannerTabUpload').classList.remove('hidden');
+    document.getElementById('bannerTabUrl').classList.add('hidden');
+    document.getElementById('bannerTabEmoji').classList.add('hidden');
+  }
+  document.getElementById('tourModalErr').classList.add('hidden');
+  document.getElementById('tourModal').classList.add('active');
+  initBannerDropZone();
+}
+
+function editTournament(id) {
+  const t = allTours.find(t => t.id === id);
+  if (t) openTourModal(t);
+}
+
+// ── BANNER TABS ───────────────────────────
+function switchBannerTab(tab, btn) {
+  currentBannerTab = tab;
+  document.querySelectorAll('.banner-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  document.getElementById('bannerTabUpload').classList.toggle('hidden', tab !== 'upload');
+  document.getElementById('bannerTabUrl').classList.toggle('hidden', tab !== 'url');
+  document.getElementById('bannerTabEmoji').classList.toggle('hidden', tab !== 'emoji');
+}
+
+// ── BANNER IMAGE UPLOAD (ImgBB) ───────────
+async function handleBannerFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) return toast('Image too large! Max 5MB.','error');
+
+  const progress = document.getElementById('bannerUploadProgress');
+  const bar = document.getElementById('bannerUploadBar');
+  const info = document.getElementById('bannerUploadInfo');
+  const result = document.getElementById('bannerUploadResult');
+
+  progress.classList.remove('hidden');
+  result.classList.add('hidden');
+  info.textContent = 'Uploading to image server...';
+  bar.style.width = '30%';
+
+  // Option 1: ImgBB upload
+  if (IMGBB_API_KEY !== 'YOUR_IMGBB_API_KEY') {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      bar.style.width = '60%';
+      const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method:'POST', body:formData });
+      const data = await res.json();
+      bar.style.width = '100%';
+      if (data.success) {
+        const url = data.data.url;
+        document.getElementById('tm-bannerUploadedUrl').value = url;
+        document.getElementById('bannerPreviewImg').src = url;
+        document.getElementById('bannerUploadMsg').textContent = '✅ Uploaded successfully!';
+        result.classList.remove('hidden');
+        progress.classList.add('hidden');
+        toast('Banner uploaded!','success');
+        return;
+      } else {
+        // ImgBB returned an error response — fall through to base64 with a notice
+        info.textContent = 'ImgBB upload failed, using local preview...';
+        progress.classList.add('hidden');
+      }
+    } catch(e) {
+      info.textContent = 'Upload failed, using local preview...';
+      progress.classList.add('hidden');
+    }
+  }
+
+  // Option 2: Local base64 preview (stored in form, backend handles)
+  progress.classList.remove('hidden');
+  bar.style.width = '80%';
+  const reader = new FileReader();
+  reader.onload = e => {
+    bar.style.width = '100%';
+    const dataUrl = e.target.result;
+    document.getElementById('tm-bannerUploadedUrl').value = dataUrl;
+    document.getElementById('bannerPreviewImg').src = dataUrl;
+    document.getElementById('bannerUploadMsg').textContent = '✅ Image ready (base64 — set ImgBB key for CDN upload)';
+    result.classList.remove('hidden');
+    setTimeout(() => progress.classList.add('hidden'), 400);
+    info.textContent = 'Done';
+  };
+  reader.readAsDataURL(file);
+}
+
+function initBannerDropZone() {
+  const bannerDZ = document.getElementById('bannerDropZone');
+  if (!bannerDZ || bannerDZ._dndInit) return;
+  bannerDZ._dndInit = true;
+  bannerDZ.addEventListener('dragover', e => { e.preventDefault(); bannerDZ.classList.add('drag-over'); });
+  bannerDZ.addEventListener('dragleave', () => bannerDZ.classList.remove('drag-over'));
+  bannerDZ.addEventListener('drop', e => {
+    e.preventDefault(); bannerDZ.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith('image/')) {
+      handleBannerFile({ files: e.dataTransfer.files });
+    }
+  });
+}
+
+function previewBannerUrl() {
+  const url = document.getElementById('tm-bannerUrl').value.trim();
+  const wrap = document.getElementById('bannerUrlPreviewWrap');
+  if (!url) { wrap.classList.add('hidden'); return; }
+  // Convert Google Drive share link to direct link
+  let directUrl = url;
+  const gdMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (gdMatch) {
+    directUrl = `https://drive.google.com/uc?export=view&id=${gdMatch[1]}`;
+    document.getElementById('tm-bannerUrl').value = directUrl;
+  }  document.getElementById('bannerUrlPreviewImg').src = directUrl;
+  wrap.classList.remove('hidden');
+}
+
+function getBannerValueFromModal() {
+  if (currentBannerTab === 'upload') {
+    const uploaded = document.getElementById('tm-bannerUploadedUrl').value;
+    // Only send bannerUploadedUrl if a NEW file was actually uploaded (non-empty)
+    // Otherwise send nothing so backend keeps existing banner
+    if (uploaded) return { bannerUploadedUrl: uploaded, banner: '' };
+    return {}; // no change to banner
+  } else if (currentBannerTab === 'url') {
+    return { bannerUrl: document.getElementById('tm-bannerUrl').value, banner: '' };
+  } else {
+    return { banner: document.getElementById('tm-bannerEmoji').value || '🎮' };
+  }
+}
+
+async function saveTournament() {
+  const name = document.getElementById('tm-name').value.trim();
+  if (!name) return showModalErr('tourModalErr','Tournament name required');
+  const bannerData = getBannerValueFromModal();
+  const data = authBody({
+    action: editingTourId ? 'update_tournament' : 'create_tournament',
+    id: editingTourId,
+    name,
+    mode: document.getElementById('tm-mode').value,
+    slots: document.getElementById('tm-slots').value || 25,
+    entryFee: document.getElementById('tm-fee').value || 0,
+    prizePool: document.getElementById('tm-prize').value || '',
+    maps: document.getElementById('tm-maps').value || '',
+    matchDate: document.getElementById('tm-matchdate').value || '',
+    regOpen: document.getElementById('tm-regopen').value || '',
+    regClose: document.getElementById('tm-regclose').value || '',
+    description: document.getElementById('tm-desc').value || '',
+    status: document.getElementById('tm-status').value,
+    prizeTable: Array.from(document.querySelectorAll('#prizeRows .prize-row input')).map(i=>i.value).filter(v=>v).join('|'),
+    ...bannerData
+  });
+  const btn = document.querySelector('#tourModal .btn-primary');
+  btn.innerHTML = '<div class="spinner"></div> Saving...'; btn.disabled = true;
+  try {
+    const res = await post(data);
+    if (res.success) {
+      closeModal('tourModal');
+      toast('Tournament saved!','success');
+      await loadAllData();
+      loadTournaments();
+    } else showModalErr('tourModalErr', res.error);
+  } catch(e) { showModalErr('tourModalErr', 'Network error'); }
+  finally { btn.innerHTML = '💾 Save Tournament'; btn.disabled = false; }
+}
+
+async function deleteTour(id, name) {
+  confirm2('Delete "'+name+'"?','This cannot be undone.','🗑️', async () => {
+    const res = await post(authBody({ action:'delete_tournament', id }));
+    if (res.success) { toast('Deleted!','success'); await loadAllData(); loadTournaments(); }
+    else toast(res.error||'Error','error');
+  });
+}
+
+function addPrizeRow() {
+  const div = document.createElement('div'); div.className='prize-row';
+  const n = document.querySelectorAll('#prizeRows .prize-row').length + 1;
+  div.innerHTML = `<input class="form-control" placeholder="#${n} prize e.g. ₹500" style="flex:1"><button class="btn btn-ghost btn-xs" onclick="this.closest('.prize-row').remove()">✕</button>`;
+  document.getElementById('prizeRows').appendChild(div);
+}
+
+// ── REGISTRATIONS ─────────────────────────
+
+function filterRegs() {
+  const search = (document.getElementById('regSearch').value||'').toLowerCase();
+  const tourF = document.getElementById('regTourFilter').value;
+  const statusF = document.getElementById('regStatusFilter').value;
+  const now = Date.now();
+  const tMin = regTimeFilter > 0 ? now - regTimeFilter*60000 : 0;
+  let list = allRegs.filter(r => {
+    if (tourF && r.tournamentId !== tourF) return false;
+    if (statusF && r.status !== statusF) return false;
+    if (tMin && r.timestampRaw && Number(r.timestampRaw) < tMin) return false;
+    if (search) {
+      const s = [r.teamName,r.uniqueCode,r.email,r.whatsapp,r.utr,r.leaderName].join(' ').toLowerCase();
+      if (!s.includes(search)) return false;
+    }
+    return true;
+  });
+  document.getElementById('regCount').textContent = `(${list.length})`;
+  // Reset select-all checkbox when table re-renders
+  const selAll = document.getElementById('selectAll');
+  if (selAll) selAll.checked = false;
+  document.getElementById('regTable').innerHTML = list.length ? list.map(r =>
+    `<tr>
+      <td><input type="checkbox" class="reg-chk" value="${r.row}"></td>
+      <td><span style="font-family:monospace;color:var(--neon);cursor:pointer" onclick="openRegDetail('${esc(r.uniqueCode)}')">${esc(r.uniqueCode)}</span></td>
+      <td><strong>${esc(r.teamName)}</strong></td>
+      <td style="font-size:12px;color:var(--muted)">${esc(r.tournamentName)}</td>
+      <td>${esc(r.leaderName)}</td>
+      <td>${esc(r.whatsapp)}</td>
+      <td style="font-family:monospace;font-size:12px">${esc(r.utr)}</td>
+      <td>${statusBadge(r.status)}</td>
+      <td style="font-size:11px;color:var(--muted)">${esc(r.timestamp)}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-success btn-xs" onclick="quickVerify(${r.row},'CONFIRMED','${esc(r.uniqueCode)}')">✅</button>
+        <button class="btn btn-danger btn-xs" onclick="quickVerify(${r.row},'FAILED','${esc(r.uniqueCode)}')">❌</button>
+        <button class="btn btn-ghost btn-xs" onclick="openRegDetail('${esc(r.uniqueCode)}')">👁</button>
+      </td>
+    </tr>`
+  ).join('') : '<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--muted)">No registrations found</td></tr>';
+}
+
+function openRegDetail(code) {
+  const r = allRegs.find(x => x.uniqueCode === code);
+  if (!r) return;
+  document.getElementById('regDetailTitle').textContent = r.teamName + ' — ' + r.uniqueCode;
+  const players = [[r.p1ign,r.p1igi],[r.p2ign,r.p2igi],[r.p3ign,r.p3igi],[r.p4ign,r.p4igi],[r.p5ign,r.p5igi],[r.p6ign,r.p6igi]].filter(p=>p[0]);
+  document.getElementById('regDetailBody').innerHTML =
+    `<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+      ${field('Team',esc(r.teamName))}${field('Code',`<span style="font-family:monospace;color:var(--neon)">${esc(r.uniqueCode)}</span>`)}
+      ${field('Tournament',esc(r.tournamentName))}${field('Status',statusBadge(r.status))}
+      ${field('Leader',esc(r.leaderName))}${field('WhatsApp',esc(r.whatsapp))}
+      ${field('Email',esc(r.email))}${field('UTR',`<span style="font-family:monospace">${esc(r.utr)}</span>`)}
+      ${field('Entry Fee',esc(String(r.entryFee||'')))}${field('Time',esc(r.timestamp))}
+      ${r.group?field('Group',esc(r.group)):''}${r.slotNo?field('Slot',esc(String(r.slotNo))):''}
+    </div>`
+    + (players.length ? `<div style="margin-bottom:16px"><div class="form-label">Players</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">${players.map(p=>`<div style="background:var(--dark2);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:13px"><strong>${esc(p[0]||'—')}</strong><br><span style="color:var(--muted)">${esc(p[1]||'')}</span></div>`).join('')}</div></div>` : '')
+    + (r.screenshot&&r.screenshot!=='N/A'?`<div style="margin-bottom:16px"><div class="form-label">Screenshot</div><a href="${esc(r.screenshot)}" target="_blank" class="btn btn-ghost btn-sm">🖼 View Screenshot</a></div>`:'')
+    + `<div style="display:flex;gap:8px">
+      <button class="btn btn-success btn-sm" onclick="quickVerify(${r.row},'CONFIRMED','${esc(r.uniqueCode)}');closeModal('regDetailModal')">✅ Confirm</button>
+      <button class="btn btn-danger btn-sm" onclick="quickVerify(${r.row},'FAILED','${esc(r.uniqueCode)}');closeModal('regDetailModal')">❌ Reject</button>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('regDetailModal')">Close</button>
+    </div>`;
+  document.getElementById('regDetailModal').classList.add('active');
+}
+
+function field(label, val) {
+  return `<div style="background:var(--dark2);border:1px solid var(--border);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px">${label}</div><div style="font-size:14px">${val}</div></div>`;
+}
+
+async function quickVerify(row, status, code) {
+  try {
+    const res = await post(authBody({ action:'manual_verify', row, status, uniqueCode:code }));
+    if (res.success) {
+      const r = allRegs.find(x => x.uniqueCode === code);
+      if (r) r.status = status;
+      toast(status==='CONFIRMED'?'✅ Confirmed!':'❌ Rejected!', status==='CONFIRMED'?'success':'error');
+      filterRegs(); populateVerify();
+    } else toast(res.error||'Error','error');
+  } catch(e) { toast('Network error','error'); }
+}
+
+function toggleSelectAll() {
+  const checked = document.getElementById('selectAll').checked;
+  document.querySelectorAll('.reg-chk').forEach(c => c.checked = checked);
+}
+
+async function bulkAction(status) {
+  const rows = Array.from(document.querySelectorAll('.reg-chk:checked')).map(c => parseInt(c.value));
+  if (!rows.length) return toast('Select registrations first','error');
+  confirm2('Bulk '+status+'?', rows.length+' registrations will be updated.','⚠️', async () => {
+    let done = 0;
+    for (const row of rows) {
+      const r = allRegs.find(x => x.row == row); // loose equality handles string/int mismatch
+      if (!r) continue;
+      try {
+        const res = await post(authBody({ action:'manual_verify', row, status, uniqueCode:r.uniqueCode }));
+        if (res.success) { r.status = status; done++; }
+      } catch(e) { console.warn('verify error row',row,e); }
+    }
+    filterRegs(); populateVerify();
+    toast(`✅ Done! ${done}/${rows.length} updated.`, done === rows.length ? 'success' : 'warn');
+  });
+}
+
+// ── VERIFY ────────────────────────────────
+function populateVerify() {
+  const search = (document.getElementById('verifySearch').value||'').toLowerCase();
+  const tourF = document.getElementById('verifyTourFilter').value;
+  const now = Date.now();
+  const tMin = verifyTimeFilter > 0 ? now - verifyTimeFilter*60000 : 0;
+  const list = allRegs.filter(r => {
+    if (r.status !== 'PENDING') return false;
+    if (tourF && r.tournamentId !== tourF) return false;
+    if (tMin && r.timestampRaw && Number(r.timestampRaw) < tMin) return false;
+    if (search) {
+      const s = [r.teamName,r.uniqueCode,r.utr,r.email].join(' ').toLowerCase();
+      if (!s.includes(search)) return false;
+    }
+    return true;
+  });
+  document.getElementById('pendingCount').textContent = `(${list.length} pending)`;
+  // Reset select-all checkbox on re-render
+  const selAllV = document.getElementById('selectAllVerify');
+  if (selAllV) selAllV.checked = false;
+  document.getElementById('verifyTable').innerHTML = list.length ? list.map(r =>
+    `<tr>
+      <td><input type="checkbox" class="verify-chk" value="${r.row}"></td>
+      <td style="font-family:monospace;color:var(--neon)">${esc(r.uniqueCode)}</td>
+      <td><strong>${esc(r.teamName)}</strong></td>
+      <td style="font-size:12px;color:var(--muted)">${esc(r.tournamentName)}</td>
+      <td style="font-family:monospace;font-size:13px">${esc(r.utr)}</td>
+      <td style="color:var(--neon)">₹${esc(String(r.entryFee||''))}</td>
+      <td>${r.screenshot&&r.screenshot!=='N/A'?`<a href="${esc(r.screenshot)}" target="_blank" class="btn btn-ghost btn-xs">🖼 View</a>`:'<span style="color:var(--muted);font-size:12px">N/A</span>'}</td>
+      <td style="font-size:11px;color:var(--muted)">${esc(r.timestamp)}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-success btn-xs" onclick="quickVerify(${r.row},'CONFIRMED','${esc(r.uniqueCode)}')">✅ Confirm</button>
+        <button class="btn btn-danger btn-xs" onclick="quickVerify(${r.row},'FAILED','${esc(r.uniqueCode)}')">❌ Reject</button>
+      </td>
+    </tr>`
+  ).join('') : '<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted)">No pending payments 🎉</td></tr>';
+}
+
+function filterVerify() { populateVerify(); }
+function toggleSelectVerify() {
+  const c = document.getElementById('selectAllVerify').checked;
+  document.querySelectorAll('.verify-chk').forEach(x => x.checked = c);
+}
+async function bulkVerifyAction(status) {
+  const rows = Array.from(document.querySelectorAll('.verify-chk:checked')).map(c => parseInt(c.value));
+  if (!rows.length) return toast('Select payments first','error');
+  confirm2('Bulk '+status+'?', rows.length+' payments.','⚠️', async () => {
+    let done = 0;
+    for (const row of rows) {
+      const r = allRegs.find(x => x.row == row); // loose equality handles string/int mismatch
+      if (!r) continue;
+      try {
+        const res = await post(authBody({ action:'manual_verify', row, status, uniqueCode:r.uniqueCode }));
+        if (res.success) { r.status = status; done++; }
+      } catch(e) { console.warn('verify error row',row,e); }
+    }
+    filterRegs(); populateVerify();
+    toast(`✅ Done! ${done}/${rows.length} updated.`, done === rows.length ? 'success' : 'warn');
+  });
+}
+
+// ── CSV ───────────────────────────────────
+document.getElementById('csvFile').addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+  document.getElementById('csvFileName').textContent = file.name;
+  const reader = new FileReader();
+  reader.onload = e => parseCSV(e.target.result);
+  reader.readAsText(file);
+});
+
+function parseCSVLine(line) {
+  const cols = []; let cur = ''; let inQ = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (ch === '"') { inQ = !inQ; }
+    else if (ch === ',' && !inQ) { cols.push(cur.trim()); cur = ''; }
+    else { cur += ch; }
+  }
+  cols.push(cur.trim());
+  return cols;
+}
+function parseCSV(text) {
+  const provider = document.getElementById('csvProvider').value;
+  const lines = text.trim().split('\n').slice(1);
+  csvTransactions = [];
+  lines.forEach(line => {
+    const cols = parseCSVLine(line);
+    let utr = '', amount = '0';
+    if (provider === 'phonepe') { utr = cols[3]||cols[4]||''; amount = cols[2]||'0'; }
+    else if (provider === 'bharatpe') { utr = cols[1]||cols[2]||''; amount = cols[3]||'0'; }
+    else { utr = cols[cols.length-1]||''; amount = cols.find(c=>/^\d+\.?\d*$/.test(c.replace(/[,₹]/g,'')))||'0'; }
+    if (utr.length > 6) csvTransactions.push({ utr: utr.toUpperCase(), amount: amount.replace(/[,₹\s]/g,'') });
+  });
+  document.getElementById('csvCount').textContent = csvTransactions.length;
+  document.getElementById('csvPreviewList').innerHTML = csvTransactions.slice(0,10).map(t =>
+    `<div>UTR: <span style="color:var(--neon)">${esc(t.utr)}</span> | ₹${esc(t.amount)}</div>`
+  ).join('') + (csvTransactions.length > 10 ? `<div style="color:var(--muted)">...+${csvTransactions.length-10} more</div>` : '');
+  document.getElementById('csvPreview').classList.remove('hidden');
+}
+
+async function runCSVMatch() {
+  if (!csvTransactions.length) return toast('Upload CSV first','error');
+  const log = document.getElementById('csvLog');
+  log.innerHTML = `<span class="log-info">⏳ Matching ${csvTransactions.length} transactions...</span>`;
+  const tid = document.getElementById('csvTourFilter').value;
+  const res = await post(authBody({ action:'csv_match', transactions:csvTransactions, tid }));
+  if (res.success) {
+    document.getElementById('csvMatched').textContent = res.matched;
+    let mismatch = 0, notfound = 0;
+    log.innerHTML = '';
+    (res.results||[]).forEach(r => {
+      if (r.matchStatus==='MATCHED') log.innerHTML += `<div class="log-ok">✅ ${esc(r.uniqueCode)} — ${esc(r.teamName)}</div>`;
+      else if (r.matchStatus==='AMOUNT_MISMATCH') { mismatch++; log.innerHTML += `<div class="log-warn">⚠️ ${esc(r.uniqueCode)} — Expected ₹${esc(String(r.expected||''))}, Got ₹${esc(String(r.got||''))}</div>`; }
+    });
+    notfound = csvTransactions.length - (res.results||[]).length;
+    document.getElementById('csvMismatch').textContent = mismatch;
+    document.getElementById('csvNotFound').textContent = notfound;
+    log.innerHTML += `<div class="log-info">Done: ${res.matched} matched / ${mismatch} mismatch / ${notfound} not found</div>`;
+    await loadAllData(); filterRegs(); populateVerify();
+    toast(res.matched+' payments confirmed!','success');
+  } else { log.innerHTML = `<span class="log-err">❌ ${esc(res.error||"Error")}</span>`; }
+}
+
+// ── GROUPS ────────────────────────────────
+function populateGroupTours() {
+  const sel = document.getElementById('groupTourSel');
+  if (!sel) return;
+  const val = sel.value;
+  sel.innerHTML = '<option value="">Select...</option>' + allTours.map(t => `<option value="${esc(t.id)}">${esc(t.name)}</option>`).join('');
+  if (val) sel.value = val;
+  loadGroupsForTour();
+}
+async function loadGroupsForTour() {
+  const tid = document.getElementById('groupTourSel').value;
+  if (!tid) { document.getElementById('groupsDisplay').innerHTML = '<p style="color:var(--muted)">Select a tournament to see groups</p>'; return; }
+  document.getElementById('groupsDisplay').innerHTML = '<p style="color:var(--muted)"><div class="spinner" style="width:16px;height:16px;display:inline-block"></div> Loading...</p>';
+  try {
+    const res = await post(authBody({ action:'get_groups', tid }));
+    if (res.success) {
+      renderGroups(res.groups || {});
+    } else {
+      document.getElementById('groupsDisplay').innerHTML = `<div class="alert alert-e">❌ ${esc(res.error || "Failed to load groups. Try again.")}</div>`;
+    }
+  } catch(e) {
+    document.getElementById('groupsDisplay').innerHTML = '<div class="alert alert-e">❌ Network error loading groups. Try again.</div>';
+  }
+}
+function renderGroups(groups) {
+  const keys = Object.keys(groups).sort();
+  if (!keys.length) {
+    document.getElementById('groupsDisplay').innerHTML = '<div class="table-wrap" style="padding:24px;text-align:center;color:var(--muted)">No groups yet. Click Auto Create Groups.</div>';
+    return;
+  }
+  document.getElementById('groupsDisplay').innerHTML = keys.map(g => {
+    const teams = groups[g];
+    return `<div class="table-wrap">
+      <div class="table-header"><div class="table-title">${esc(g)} <span style="color:var(--muted);font-size:12px">(${teams.length} teams)</span></div></div>
+      <div style="padding:14px">
+        ${teams.map(t => `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--dark2);border-radius:8px;margin-bottom:6px;font-size:13px">
+          <div><strong>${esc(t.teamName)}</strong> <span style="font-family:monospace;color:var(--neon);font-size:11px">${esc(t.uniqueCode)}</span></div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span style="color:var(--muted)">Slot ${esc(String(t.slotNo||''))}</span>
+            ${t.mailSent==='YES'?'<span class="badge badge-green" style="font-size:10px">✉ Sent</span>':''}
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+async function createGroupsAuto() {
+  const tid = document.getElementById('groupTourSel').value;
+  if (!tid) return toast('Select tournament first','error');
+  const groupSize = parseInt(document.getElementById('groupSize').value) || 4;
+  const confirmed = allRegs.filter(r => r.tournamentId === tid && r.status === 'CONFIRMED');
+  if (!confirmed.length) return toast('No confirmed players for this tournament','error');
+  const tour = allTours.find(t => t.id === tid);
+  confirm2('Create Groups?', `This will create groups of ${groupSize} for ${confirmed.length} confirmed teams. Any existing groups will be overwritten.`, '🔀', async () => {
+    try {
+      const res = await post(authBody({ action:'create_groups', tournamentId:tid, tournamentName:tour?.name||'', teams:confirmed, groupSize }));
+      if (res.success) { toast(res.groups+' groups created!','success'); loadGroupsForTour(); }
+      else toast(res.error||'Error','error');
+    } catch(e) { toast('Network error creating groups','error'); }
+  });
+}
+
+// ── TEAMS ─────────────────────────────────
+function populateTeamTours() {
+  const sel = document.getElementById('teamTourFilter');
+  if (!sel) return;
+  const val = sel.value;
+  sel.innerHTML = '<option value="">All Tournaments</option>' + allTours.map(t => `<option value="${esc(t.id)}">${esc(t.name)}</option>`).join('');
+  if (val) sel.value = val;
+  filterTeams();
+}
+function filterTeams() {
+  const search = (document.getElementById('teamSearch').value||'').toLowerCase();
+  const tourF = document.getElementById('teamTourFilter').value;
+  const groupF = document.getElementById('teamGroupFilter').value;
+  let list = allRegs.filter(r => {
+    if (r.status === 'FAILED') return false; // exclude failed registrations
+    if (tourF && r.tournamentId !== tourF) return false;
+    if (groupF && r.group !== groupF) return false;
+    if (search) {
+      const s = [r.teamName,r.uniqueCode,r.leaderName,r.whatsapp,r.p1ign,r.p2ign].join(' ').toLowerCase();
+      if (!s.includes(search)) return false;
+    }
+    return true;
+  });
+  document.getElementById('teamCount').textContent = `(${list.length})`;
+  const groups = [...new Set(allRegs.filter(r => !tourF || r.tournamentId === tourF).map(r => r.group).filter(Boolean))];
+  const gf = document.getElementById('teamGroupFilter');
+  const gv = gf.value;
+  gf.innerHTML = '<option value="">All Groups</option>' + groups.map(g => `<option value="${esc(g)}">${esc(g)}</option>`).join('');
+  if (gv) gf.value = gv;
+  document.getElementById('teamsTable').innerHTML = list.length ? list.map(r =>
+    `<tr>
+      <td style="font-family:monospace;color:var(--neon)">${esc(r.uniqueCode)}</td>
+      <td><strong>${esc(r.teamName)}</strong></td>
+      <td>${esc(r.leaderName)}</td><td>${esc(r.whatsapp)}</td>
+      <td style="font-size:12px;color:var(--muted)">${esc(r.tournamentName)}</td>
+      <td><span class="badge badge-blue">${esc(r.group||'—')}</span></td>
+      <td>${statusBadge(r.status)}</td>
+      <td><button class="btn btn-ghost btn-xs" data-code="${esc(r.uniqueCode)}" onclick="openRegDetail(this.dataset.code)">👁</button></td>
+    </tr>`
+  ).join('') : '<tr><td colspan="8" style="text-align:center;padding:30px;color:var(--muted)">No teams found</td></tr>';
+}
+
+// ── RESULTS ───────────────────────────────
+function populateResultTours() {
+  const sel = document.getElementById('resultTourSel');
+  if (!sel) return;
+  const val = sel.value;
+  sel.innerHTML = '<option value="">Select...</option>' + allTours.map(t => `<option value="${esc(t.id)}">${esc(t.name)}</option>`).join('');
+  // Restore previously selected value but do NOT auto-reload teams (would wipe entered data)
+  if (val) sel.value = val;
+}
+function loadResultTeams() {
+  const tid = document.getElementById('resultTourSel').value;
+  if (!tid) return;
+  const confirmed = allRegs.filter(r => r.tournamentId === tid && r.status === 'CONFIRMED');
+  if (!confirmed.length) { document.getElementById('resultsBody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--muted)">No confirmed players</td></tr>'; return; }
+  // Sort alphabetically by team name initially (neutral display order for entry)
+  const sorted = [...confirmed].sort((a,b) => (a.teamName||'').localeCompare(b.teamName||''));
+  document.getElementById('resultsBody').innerHTML = sorted.map((r,i) => {
+    const safeId = (r.uniqueCode||'').replace(/[^a-zA-Z0-9_-]/g,'_');
+    return `<tr id="rrow-${safeId}" data-code="${esc(r.uniqueCode)}">
+      <td style="font-family:'Orbitron',monospace;font-weight:700">${i+1}</td>
+      <td><strong>${esc(r.teamName)}</strong></td>
+      <td style="font-family:monospace;color:var(--neon);font-size:12px">${esc(r.uniqueCode)}</td>
+      <td><input type="number" class="form-control" id="kills-${safeId}" value="0" min="0" style="width:70px;padding:6px 8px" onchange="autoCalc('${safeId}')"></td>
+      <td><input type="number" class="form-control" id="placement-${safeId}" value="0" min="0" style="width:70px;padding:6px 8px" onchange="autoCalc('${safeId}')"></td>
+      <td><span id="total-${safeId}" style="font-family:'Orbitron',sans-serif;font-weight:900;color:var(--neon)">0</span></td>
+      <td><input type="text" class="form-control" id="prize-${safeId}" placeholder="₹0" style="width:90px;padding:6px 8px"></td>
+    </tr>`;
+  }).join('');
+}
+function autoCalc(safeId) {
+  const kills = parseInt(document.getElementById('kills-'+safeId)?.value)||0;
+  const placement = parseInt(document.getElementById('placement-'+safeId)?.value)||0;
+  const el = document.getElementById('total-'+safeId);
+  if (el) el.textContent = kills + placement;
+}
+function calcTotals() {
+  const tid = document.getElementById('resultTourSel').value;
+  if (!tid) return toast('Select a tournament first','error');
+  const rows = allRegs.filter(r => r.tournamentId === tid && r.status === 'CONFIRMED');
+  rows.forEach(r => autoCalc((r.uniqueCode||'').replace(/[^a-zA-Z0-9_-]/g,'_')));
+  const tbody = document.getElementById('resultsBody');
+  const trList = Array.from(tbody.querySelectorAll('tr[id^="rrow-"]'));
+  trList.sort((a, b) => {
+    const aId = a.id.replace('rrow-','');
+    const bId = b.id.replace('rrow-','');
+    const aTotal = parseInt(document.getElementById('total-'+aId)?.textContent)||0;
+    const bTotal = parseInt(document.getElementById('total-'+bId)?.textContent)||0;
+    return bTotal - aTotal;
+  });
+  trList.forEach((tr,i) => { tbody.appendChild(tr); tr.querySelector('td:first-child').textContent = i+1; });
+  toast('Totals calculated & sorted!','success');
+}
+async function saveResults() {
+  const tid = document.getElementById('resultTourSel').value;
+  if (!tid) return toast('Select tournament','error');
+  const confirmed = allRegs.filter(r => r.tournamentId === tid && r.status === 'CONFIRMED');
+  const entries = confirmed.map(r => {
+    const safeId = (r.uniqueCode||'').replace(/[^a-zA-Z0-9_-]/g,'_');
+    return {
+      teamName:r.teamName, uniqueCode:r.uniqueCode,
+      kills: parseInt(document.getElementById('kills-'+safeId)?.value)||0,
+      placementPts: parseInt(document.getElementById('placement-'+safeId)?.value)||0,
+      totalPts: parseInt(document.getElementById('total-'+safeId)?.textContent)||0,
+      prize: document.getElementById('prize-'+safeId)?.value||''
+    };
+  }).sort((a,b) => b.totalPts - a.totalPts);
+  const tour = allTours.find(t => t.id === tid);
+  confirm2('Save Results?', `Save leaderboard for "${tour?.name||'this tournament'}" with ${entries.length} teams? This will overwrite any existing results.`, '💾', async () => {
+    try {
+      const res = await post(authBody({ action:'save_leaderboard', tournamentId:tid, entries }));
+      if (res.success) toast('Results saved!','success');
+      else toast(res.error||'Error','error');
+    } catch(e) { toast('Network error saving results','error'); }
+  });
+}
+
+// ── MAIL ──────────────────────────────────
+function switchMailTab(tab, btn) {
+  document.querySelectorAll('#sec-mail .tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  // IDs: mailTabRoom, mailTabCustom, mailTabBulk
+  ['room','custom','bulk'].forEach(t => {
+    const key = 'mailTab' + t.charAt(0).toUpperCase() + t.slice(1);
+    const el = document.getElementById(key);
+    if (el) el.classList.toggle('hidden', t !== tab);
+  });
+  // Hide shared log when switching tabs to avoid confusion
+  const logEl = document.getElementById('mailLog');
+  if (logEl) { logEl.classList.add('hidden'); logEl.innerHTML = ''; }
+}
+async function loadRoomGroups() {
+  const tid = document.getElementById('roomTourSel').value;
+  if (!tid) return;
+  try {
+    const res = await post(authBody({ action:'get_groups', tid }));
+    const sel = document.getElementById('roomGroupSel');
+    if (res.success && Object.keys(res.groups||{}).length) {
+      sel.innerHTML = '<option value="all">All Confirmed</option>' + Object.keys(res.groups).map(g => `<option value="${esc(g)}">${esc(g)}</option>`).join('');
+    } else sel.innerHTML = '<option value="all">All Confirmed</option>';
+    previewRoomRecipients();
+  } catch(e) { toast('Failed to load groups','warn'); }
+}
+function previewRoomRecipients() {
+  const tid = document.getElementById('roomTourSel').value;
+  const group = document.getElementById('roomGroupSel').value;
+  let list = allRegs.filter(r => r.tournamentId === tid && r.status === 'CONFIRMED');
+  if (group && group !== 'all') list = list.filter(r => r.group === group);
+  document.getElementById('roomRecipientList').innerHTML = list.length
+    ? list.map(r => `<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px"><span><strong>${esc(r.teamName)}</strong> <span style="color:var(--neon);font-family:monospace">${esc(r.uniqueCode)}</span></span><span style="color:var(--muted)">${esc(r.group||'')}</span></div>`).join('')
+    : '<p style="color:var(--muted);font-size:13px">No confirmed players found</p>';
+}
+async function sendRoomMail() {
+  const tid = document.getElementById('roomTourSel').value;
+  const group = document.getElementById('roomGroupSel').value;
+  const roomId = document.getElementById('roomId').value.trim();
+  if (!tid) return toast('Select tournament','error');
+  if (!roomId) return toast('Enter Room ID','error');
+  let list = allRegs.filter(r => r.tournamentId === tid && r.status === 'CONFIRMED');
+  if (group !== 'all') list = list.filter(r => r.group === group);
+  list = list.filter(r => r.email); // B01: only send to teams with email
+  if (!list.length) return toast('No recipients with email address found','error');
+  const tour = allTours.find(t => t.id === tid);
+  const logEl = document.getElementById('mailLog');
+  logEl.classList.remove('hidden');
+  logEl.innerHTML = `<span class="log-info">⏳ Sending to ${list.length} teams...</span>`;
+  const res = await post(authBody({ action:'send_room', tournamentName:tour?.name||'', roomId, roomPass:document.getElementById('roomPass').value, matchTime:document.getElementById('matchTime').value, customMsg:document.getElementById('roomCustomMsg').value, recipients:list.map(r=>({email:r.email,teamName:r.teamName,uniqueCode:r.uniqueCode,group:r.group})) }));
+  if (res.success) { logEl.innerHTML = `<span class="log-ok">✅ Sent to ${res.sent}/${res.total} teams!</span>`; toast('Room details sent!','success'); }
+  else { logEl.innerHTML = `<span class="log-err">❌ ${esc(res.error||"Error")}</span>`; }
+}
+async function previewCustomMail() {
+  const tourF = document.getElementById('customMailTour').value;
+  const target = document.getElementById('customMailTarget').value;
+  let list = allRegs;
+  if (tourF) list = list.filter(r => r.tournamentId === tourF);
+  if (target && target !== 'all') list = list.filter(r => r.status === target);
+  list = list.filter(r => r.email); // B16: only count those with email
+  document.getElementById('customMailPreview').textContent = `📧 Will send to ${list.length} recipients (with email)`;
+}
+async function sendCustomMail() {
+  const subject = document.getElementById('customMailSubject').value.trim();
+  const message = document.getElementById('customMailMsg').value.trim();
+  if (!subject || !message) return toast('Fill subject and message','error');
+  const tourF = document.getElementById('customMailTour').value;
+  const target = document.getElementById('customMailTarget').value;
+  let list = allRegs;
+  if (tourF) list = list.filter(r => r.tournamentId === tourF);
+  if (target && target !== 'all') list = list.filter(r => r.status === target);
+  list = list.filter(r => r.email); // B17: only send to those with email
+  if (!list.length) return toast('No recipients with email address match the filters','error');
+  const logEl = document.getElementById('mailLog');
+  logEl.classList.remove('hidden');
+  logEl.innerHTML = `<span class="log-info">⏳ Sending...</span>`;
+  const res = await post(authBody({ action:'send_custom_mail', subject, message, recipients:list.map(r=>({email:r.email,teamName:r.teamName,uniqueCode:r.uniqueCode})) }));
+  if (res.success) { logEl.innerHTML = `<span class="log-ok">✅ Sent to ${res.sent}!</span>`; toast('Mail sent!','success'); }
+  else logEl.innerHTML = `<span class="log-err">❌ ${esc(res.error||"Error")}</span>`;
+}
+async function sendBulkMail() {
+  const subject = document.getElementById('bulkSubject').value.trim();
+  const message = document.getElementById('bulkMsg').value.trim();
+  if (!subject || !message) return toast('Fill subject and message','error');
+  const tourF = document.getElementById('bulkMailTour').value;
+  let list = allRegs;
+  if (tourF) list = list.filter(r => r.tournamentId === tourF);
+  list = list.filter(r => r.email); // only send to users with email addresses
+  if (!list.length) return toast('No recipients with email addresses found','error');
+  confirm2('Send bulk mail to '+list.length+' people?', subject, '📢', async () => {
+    const logEl = document.getElementById('mailLog');
+    logEl.classList.remove('hidden');
+    logEl.innerHTML = `<span class="log-info">⏳ Sending bulk mail to ${list.length} recipients...</span>`;
+    const res = await post(authBody({ action:'send_custom_mail', subject, message, recipients:list.map(r=>({email:r.email,teamName:r.teamName,uniqueCode:r.uniqueCode})) }));
+    if (res.success) {
+      logEl.innerHTML = `<span class="log-ok">✅ Bulk mail sent to ${res.sent||list.length} recipients!</span>`;
+      toast('Sent to '+( res.sent||list.length)+'!','success');
+    } else {
+      logEl.innerHTML = `<span class="log-err">❌ ${esc(res.error||"Error")}</span>`;
+      toast(res.error||'Error','error');
+    }
+  });
+}
+function previewBulkCount() {
+  const tourF = document.getElementById('bulkMailTour').value;
+  const count = allRegs.filter(r => (!tourF || r.tournamentId === tourF) && r.email).length;
+  document.getElementById('bulkPreviewCount').textContent = `📢 Will send to ${count} people (with email)`;
+}
+
+// ── NEWS ──────────────────────────────────
+async function loadNewsAdmin() {
+  try {
+  const res = await get({ action:'get_news' });
+  if (res.success) {
+    allNews = res.news || [];
+    document.getElementById('newsAdminTable').innerHTML = allNews.length ? allNews.map(n =>
+      `<tr>
+        <td>${esc(n.title)}</td>
+        <td><span class="badge badge-blue">${esc(n.category)}</span></td>
+        <td>${esc(n.date)}</td>
+        <td><span class="badge badge-green">Published</span></td>
+        <td><button class="btn btn-ghost btn-xs" data-newsid="${esc(n.id)}" onclick="editNews(this.dataset.newsid)">✏️</button> <button class="btn btn-danger btn-xs" data-newsid="${esc(n.id)}" onclick="deleteNewsItem(this.dataset.newsid)">🗑️</button></td>
+      </tr>`
+    ).join('') : '<tr><td colspan="5" style="text-align:center;padding:30px;color:var(--muted)">No news yet</td></tr>';
+  } else { toast(res.error||'Failed to load news','warn'); }
+  } catch(e) { toast('Network error loading news','warn'); }
+}
+function openNewsModal(n) {
+  editingNewsId = n ? n.id : null;
+  document.getElementById('newsModalTitle').textContent = n ? '✏️ Edit News' : '➕ Add News';
+  document.getElementById('nm-title').value = n ? n.title : '';
+  document.getElementById('nm-cat').value = n ? n.category : 'Announcement';
+  document.getElementById('nm-content').value = n ? n.content : '';
+  document.getElementById('newsModal').classList.add('active');
+}
+function editNews(id) { const n = allNews.find(x => x.id === id); if (n) openNewsModal(n); }
+async function saveNewsItem() {
+  const title = document.getElementById('nm-title').value.trim();
+  const content = document.getElementById('nm-content').value.trim();
+  if (!title || !content) return toast('Fill title and content','error');
+  const btn = document.querySelector('#newsModal .btn-primary');
+  if (btn) { btn.innerHTML = '<div class="spinner"></div> Saving...'; btn.disabled = true; }
+  try {
+    const res = await post(authBody({ action:'save_news', id:editingNewsId, title, category:document.getElementById('nm-cat').value, content, published:'YES' }));
+    if (res.success) { closeModal('newsModal'); toast('News saved!','success'); loadNewsAdmin(); }
+    else toast(res.error||'Error','error');
+  } finally { if (btn) { btn.innerHTML = '💾 Save'; btn.disabled = false; } }
+}
+async function deleteNewsItem(id) {
+  confirm2('Delete this news?','Cannot be undone.','🗑️', async () => {
+    const res = await post(authBody({ action:'delete_news', id }));
+    if (res.success) { toast('Deleted!','success'); loadNewsAdmin(); }
+    else toast(res.error||'Error','error');
+  });
+}
+
+// ── WEBSITE / SETTINGS ────────────────────
+async function loadSettings() {
+  try {
+    const res = await get({ action:'get_settings' });
+    if (!res.success) return;
+    const s = res.settings || {};
+    ['site_name','site_tagline','announce_text','form_status','youtube','instagram','discord','whatsapp_group','upi_id','upi_name','entry_fee','stat_players','stat_tournaments','stat_prize','stat_winners'].forEach(k => {
+      const el = document.getElementById('ws-'+k);
+      if (el && s[k] !== undefined) el.value = s[k];
+    });
+    ['admin_email','support_email','whatsapp_number','prize_pool','max_teams'].forEach(k => {
+      const el = document.getElementById('st-'+k);
+      if (el && s[k] !== undefined) el.value = s[k];
+    });
+  } catch(e) { toast('Failed to load settings','warn'); }
+}
+async function saveWebsiteSettings() {
+  const keys = ['site_name','site_tagline','announce_text','form_status','youtube','instagram','discord','whatsapp_group','upi_id','upi_name','entry_fee','stat_players','stat_tournaments','stat_prize','stat_winners'];
+  const settings = {};
+  keys.forEach(k => { const el = document.getElementById('ws-'+k); if(el) settings[k] = el.value; });
+  const btn = document.querySelector('#sec-website .btn-primary');
+  if (btn) { btn.innerHTML = '<div class="spinner"></div> Saving...'; btn.disabled = true; }
+  try {
+    const res = await post(authBody({ action:'update_settings', settings }));
+    if (res.success) { toast('Website settings saved!','success'); showInlineMsg('wsMsg','✅ Saved!'); }
+    else toast(res.error||'Error','error');
+  } finally { if (btn) { btn.innerHTML = '💾 Save All Settings'; btn.disabled = false; } }
+}
+async function saveAdminSettings() {
+  const keys = ['admin_email','support_email','whatsapp_number','prize_pool','max_teams'];
+  const settings = {};
+  keys.forEach(k => { const el = document.getElementById('st-'+k); if(el) settings[k] = el.value; });
+  const btn = document.querySelector('#sec-settings .btn-primary');
+  if (btn) { btn.innerHTML = '<div class="spinner"></div> Saving...'; btn.disabled = true; }
+  try {
+    const res = await post(authBody({ action:'update_settings', settings }));
+    if (res.success) { toast('Settings saved!','success'); showInlineMsg('stMsg','✅ Saved!'); }
+    else toast(res.error||'Error','error');
+  } finally { if (btn) { btn.innerHTML = '💾 Save Settings'; btn.disabled = false; } }
+}
+function showInlineMsg(id, msg) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = msg; el.classList.remove('hidden');
+  setTimeout(() => el.classList.add('hidden'), 3000);
+}
+
+// ── MEMBERS ───────────────────────────────
+async function loadMembers() {
+  try {
+  const res = await post(authBody({ action:'get_admins' }));
+  if (res.success) {
+    const roleColors = { SUPER_ADMIN:'badge-gold', MANAGER:'badge-blue', VERIFIER:'badge-yellow', VIEWER:'badge-gray' };
+    document.getElementById('membersTable').innerHTML = (res.admins||[]).map(a =>
+      `<tr>
+        <td style="font-family:monospace;font-size:12px;color:var(--muted)">${esc(String(a.id||''))}</td>
+        <td><strong>${esc(a.username||'')}</strong></td>
+        <td><span class="badge ${roleColors[a.role]||'badge-gray'}">${esc(a.role||'')}</span></td>
+        <td style="font-size:12px;color:var(--muted)">${esc(String(a.created||''))}</td>
+        <td style="font-size:12px;color:var(--muted)">${esc(String(a.lastLogin||'Never'))}</td>
+        <td>${a.id!=='ADM001'?`<button class="btn btn-danger btn-xs" onclick="deleteMember('${esc(a.id)}','${esc(a.username)}')">🗑️ Remove</button>`:'<span style="color:var(--muted);font-size:12px">Protected</span>'}</td>
+      </tr>`
+    ).join('');
+  } else { toast(res.error||'Failed to load members','warn'); }
+  } catch(e) { toast('Network error loading members','warn'); }
+}
+function openAddMemberModal() {
+  // Clear fields every time modal opens
+  document.getElementById('mem-user').value = '';
+  document.getElementById('mem-pass').value = '';
+  document.getElementById('mem-role').value = 'MANAGER';
+  document.getElementById('addMemberModal').classList.add('active');
+}
+async function saveMember() {
+  const user = document.getElementById('mem-user').value.trim();
+  const pass = document.getElementById('mem-pass').value;
+  const role = document.getElementById('mem-role').value;
+  if (!user || !pass) return toast('Fill username and password','error');
+  const btn = document.querySelector('#addMemberModal .btn-primary');
+  if (btn) { btn.innerHTML = '<div class="spinner"></div> Adding...'; btn.disabled = true; }
+  try {
+    const res = await post(authBody({ action:'create_admin', newUsername:user, newPassword:pass, newRole:role }));
+    if (res.success) {
+      document.getElementById('mem-user').value = '';
+      document.getElementById('mem-pass').value = '';
+      closeModal('addMemberModal');
+      toast('Member added!','success');
+      loadMembers();
+    } else toast(res.error||'Error','error');
+  } finally { if (btn) { btn.innerHTML = 'Add Member'; btn.disabled = false; } }
+}
+async function deleteMember(id, name) {
+  confirm2('Remove '+name+'?','They will lose admin access.','🗑️', async () => {
+    const res = await post(authBody({ action:'delete_admin', deleteId:id }));
+    if (res.success) { toast('Removed!','success'); loadMembers(); }
+    else toast(res.error||'Error','error');
+  });
+}
+
+// ── EXPORT CSV ────────────────────────────
+function exportRegCSV() {
+  if (!allRegs.length) return toast('No data to export','error');
+  const headers = ['Code','Team','Tournament','Leader','WhatsApp','Email','UTR','Fee','Status','Time'];
+  const rows = allRegs.map(r => [r.uniqueCode,r.teamName,r.tournamentName,r.leaderName,r.whatsapp,r.email,r.utr,r.entryFee,r.status,r.timestamp]);
+  // B12: sanitize values that start with formula chars to prevent CSV injection
+  const sanitize = v => { const s = (v||'').toString(); return /^[=+\-@|%]/.test(s) ? "'" + s : s; };
+  const csv = [headers,...rows].map(r => r.map(c => `"${sanitize(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], { type:'text/csv;charset=utf-8;' }); // BOM for Excel compat
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'kbx_registrations_'+Date.now()+'.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000); // release memory
+  toast('CSV downloaded!','success');
+}
+
+// ── UTILS ─────────────────────────────────
+function statusBadge(s) {
+  const map = { CONFIRMED:'badge-green', PENDING:'badge-yellow', FAILED:'badge-red' };
+  return `<span class="badge ${map[s]||'badge-gray'}">${s}</span>`;
+}
+function tourStatusBadge(s) {
+  const map = { OPEN:'badge-green', UPCOMING:'badge-blue', LIVE:'badge-gold', ONGOING:'badge-gold', ENDED:'badge-gray' };
+  return `<span class="badge ${map[s]||'badge-gray'}">${s}</span>`;
+}
+function setTimeFilter(mins, type, el) {
+  if (type === 'reg') {
+    regTimeFilter = mins;
+    document.querySelectorAll('#regTimePills .time-pill').forEach(p => p.classList.remove('active'));
+    if (el) el.classList.add('active');
+    filterRegs();
+  }
+  if (type === 'verify') {
+    verifyTimeFilter = mins;
+    if (el) {
+      el.closest('.time-pills').querySelectorAll('.time-pill').forEach(p => p.classList.remove('active'));
+      el.classList.add('active');
+    }
+    populateVerify();
+  }
+}
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+function confirm2(title, msg, icon, fn) {
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent = msg;
+  document.getElementById('confirmIcon').textContent = icon||'⚠️';
+  document.getElementById('confirmYes').onclick = () => { closeModal('confirmModal'); fn(); };
+  openModal('confirmModal');
+}
+function showModalErr(id, msg) {
+  const el = document.getElementById(id);
+  if (el) { el.textContent = '❌ '+msg; el.classList.remove('hidden'); }
+}
+function toast(msg, type='success') {
+  const colors = {
+    success:{bg:'rgba(0,255,136,.1)',border:'rgba(0,255,136,.3)',color:'var(--green)'},
+    error:{bg:'rgba(255,0,110,.1)',border:'rgba(255,0,110,.3)',color:'var(--neon2)'},
+    info:{bg:'rgba(0,245,255,.08)',border:'rgba(0,245,255,.2)',color:'var(--neon)'},
+    warn:{bg:'rgba(255,107,0,.08)',border:'rgba(255,107,0,.25)',color:'var(--orange)'}
+  };
+  // Remove any existing toast before showing new one
+  document.querySelectorAll('.toast').forEach(el => el.remove());
+  const c = colors[type]||colors.info;
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.style.cssText = `background:${c.bg};border:1px solid ${c.border};color:${c.color}`;
+  t.textContent = msg; // textContent is XSS-safe (BUG-14 also fixed here)
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.animation = 'toastIn .3s ease reverse both'; setTimeout(()=>t.remove(),300); }, 3500);
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if(e.target===o) o.classList.remove('active'); });
+});
+document.getElementById('loginUser')?.addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('loginPass')?.addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+// B01: Escape key closes any open modal
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.active').forEach(o => o.classList.remove('active'));
+  }
+});
+
+// ── CSV DROP ZONE drag-and-drop ───────────
+(function initCSVDropZone() {
+  const dz = document.getElementById('csvDropZone');
+  if (!dz) return;
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    if (!file.name.endsWith('.csv') && file.type !== 'text/csv') return toast('Please drop a .csv file','error');
+    document.getElementById('csvFileName').textContent = file.name;
+    // Inject into file input for consistency
+    try {
+      const dt = new DataTransfer();
+      dt.items.add(file);
+      document.getElementById('csvFile').files = dt.files;
+    } catch(e) {}
+    const reader = new FileReader();
+    reader.onload = ev => parseCSV(ev.target.result);
+    reader.readAsText(file);
+  });
+})();
+</script>
+</body>
+</html>
